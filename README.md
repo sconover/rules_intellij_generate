@@ -3,6 +3,8 @@ Inspired by `pants idea`.
 dotfile in, intellij config out
 ...plus facilities for adding other intellij prefs.
 
+...room for two approaches (plugin-centric, vanilla-idea-centric(-plus?))
+
 Primary Goals:
 - plugin-less intellij development
   - from intellij's point of view it's "just a java project" or (say) "just a scala project"
@@ -30,3 +32,6 @@ Docs:
 - Some short statement of the problem, then (very briefly!) the philosophy of these rules
 - List trade-offs of this approach vs use of a plugin.
   - And, even, demonstrate both in example projects
+
+TODO:
+- license statements

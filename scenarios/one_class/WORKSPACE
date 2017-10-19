@@ -1,0 +1,5 @@
+local_repository(
+    name = "io_bazel_rules_intellij_generate",
+    path = "../..",
+)
+

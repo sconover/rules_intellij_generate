@@ -10,3 +10,6 @@ java_binary(
     main_class="oneclass.A",
     srcs = glob(["**/*.java"]),
 )
+
+load("@io_bazel_rules_intellij_generate//intellij_generate:intellij_generate.bzl", "intellij_generate")
+intellij_generate(name="intellij_generate_one_class")

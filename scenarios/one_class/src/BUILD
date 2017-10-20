@@ -13,3 +13,6 @@ java_binary(
 
 load("@io_bazel_rules_intellij_generate//intellij_generate:intellij_generate.bzl", "intellij_generate")
 intellij_generate(name="intellij_generate_one_class")
+
+load("@io_bazel_rules_intellij_generate//intellij_generate:intellij_generate.bzl", "print_hello")
+print_hello(name="hello_from_one_class")

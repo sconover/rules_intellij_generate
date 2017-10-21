@@ -8,11 +8,12 @@ java_library(
 java_binary(
     name = "one_class_run",
     main_class="oneclass.A",
-    srcs = glob(["**/*.java"]),
+    srcs = ["oneclass/A.java"],
 )
 
-load("@io_bazel_rules_intellij_generate//intellij_generate:intellij_generate.bzl", "intellij_generate")
-intellij_generate(name="intellij_generate_one_class")
+load("//rules:intellij_generate.bzl", "intellij_generate")
 
-load("@io_bazel_rules_intellij_generate//intellij_generate:intellij_generate.bzl", "print_hello")
-print_hello(name="hello_from_one_class")
+intellij_generate(
+    name = "idea",
+    lib = ":one_class",
+)

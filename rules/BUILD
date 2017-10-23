@@ -1,0 +1,1 @@
+exports_files(srcs = ["intellij_generate.bzl"])

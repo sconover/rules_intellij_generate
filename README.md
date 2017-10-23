@@ -20,7 +20,7 @@ Secondary goals:
 - If possible, prevent unnecessary intellij re-indexing when switching branches
 
 Implementation:
-- python, follow much of [rules_docker](https://github.com/bazelbuild/rules_docker/tree/master/container) style.
+- java: simple, focused, few-dependency (stdlib + jcommander), well-unit-tested Main classes for making intellij stuff
 - however, dotfile-to-iml should be pure-python and (ideally) independent of bazel depenendencies.
 
 Review:

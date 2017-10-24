@@ -1,3 +1,5 @@
+Use Intellij in "classic mode". Core intellij project files are generated via your bazel build.
+
 Inspired by `pants idea`.
 
 dotfile in, intellij config out

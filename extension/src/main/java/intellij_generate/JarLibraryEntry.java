@@ -39,6 +39,21 @@ public class JarLibraryEntry {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    JarLibraryEntry that = (JarLibraryEntry) o;
+
+    return path.equals(that.path);
+  }
+
+  @Override
+  public int hashCode() {
+    return path.hashCode();
+  }
+
+  @Override
   public String toString() {
     return format("JarLibraryEntry[%s,%s]", name, path);
   }

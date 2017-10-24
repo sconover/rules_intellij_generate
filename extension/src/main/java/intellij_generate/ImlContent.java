@@ -47,6 +47,10 @@ public class ImlContent {
             jarLibraryEntry));
     }
 
+    // entries already accounted for in the main lib list, should be removed from test libs.
+    testLibraryEntries = new ArrayList<>(testLibraryEntries);
+    testLibraryEntries.removeAll(mainLibraryEntries);
+
     if (!testLibraryEntries.isEmpty()) {
       testLibraryEntries.forEach(
         jarLibraryEntry ->

@@ -1,13 +1,13 @@
-package intellij_generate;
+package intellij_generate.iml;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static intellij_generate.Util.fileJoin;
+import static intellij_generate.common.Util.fileJoin;
 import static java.lang.String.format;
 
-public class ImlContent {
+class ImlContent {
   static String makeImlContent(
     String pathFromModuleDirToContentRoot,
     List<String> sourcesRoots,

@@ -1,10 +1,10 @@
-package intellij_generate;
+package intellij_generate.iml;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static intellij_generate.Util.fileJoin;
-import static intellij_generate.Util.readFile;
+import static intellij_generate.common.Util.fileJoin;
+import static intellij_generate.common.Util.readFile;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -13,7 +13,7 @@ import static java.util.stream.Collectors.toList;
  * Represents an entry from a manifest file provided by the bazel build to the iml-generator.
  * The manifest file consists of two columns: name and path-on-disk-to-the-jar-file.
  */
-public class JarLibraryEntry {
+class JarLibraryEntry {
   static List<JarLibraryEntry> loadLibraryEntriesFromManifestFile(String execRootPath, String librariesManifestPath) {
     String fileContent = readFile(librariesManifestPath);
     if (fileContent.trim().length() == 0) {

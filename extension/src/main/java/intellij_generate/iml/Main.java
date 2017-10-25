@@ -1,4 +1,4 @@
-package intellij_generate;
+package intellij_generate.iml;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -8,14 +8,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static intellij_generate.ImlContent.makeImlContent;
-import static intellij_generate.JarLibraryEntry.loadLibraryEntriesFromManifestFile;
-import static intellij_generate.Util.checkPathExists;
-import static intellij_generate.Util.writeStringToFileAsUTF8;
+import static intellij_generate.common.Util.checkPathExists;
+import static intellij_generate.common.Util.getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam;
+import static intellij_generate.common.Util.writeStringToFileAsUTF8;
+import static intellij_generate.iml.ImlContent.makeImlContent;
+import static intellij_generate.iml.JarLibraryEntry.loadLibraryEntriesFromManifestFile;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 
 public class Main {
   @Parameter(
@@ -65,7 +64,7 @@ public class Main {
     main.run();
   }
 
-  public void run() {
+  private void run() {
     String execRootPath = getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam();
 
     Path pathOfImlDir = checkPathExists(Paths.get(new File(imlPath).getParent()).toAbsolutePath());
@@ -81,18 +80,6 @@ public class Main {
         loadLibraryEntriesFromManifestFile(execRootPath, testLibrariesManifestPath));
 
     writeStringToFileAsUTF8(imlPath, imlContent);
-  }
-
-  private String getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam() {
-    // this is awful and cannot be released, but I have no idea how else to get the execroot from the bazel env...
-    String pwd = System.getenv("PWD");
-    List<String> pwdParts = asList(pwd.split("/"));
-    // we're in the sandbox dir, which is two levels below the real execroot.
-    String workspaceName = pwdParts.get(pwdParts.size() - 1);
-    List<String> execRootParts = new ArrayList<>(pwdParts.subList(0, pwdParts.size() - 4));
-    execRootParts.add("execroot");
-    execRootParts.add(workspaceName);
-    return execRootParts.stream().collect(Collectors.joining("/"));
   }
 
   @Override

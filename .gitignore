@@ -2,3 +2,4 @@ bazel-*
 intellij-out
 workspace.xml
 preferred-vcs.xml
+extension/out

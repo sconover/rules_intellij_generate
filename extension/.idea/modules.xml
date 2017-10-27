@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/extension.iml" filepath="$PROJECT_DIR$/extension.iml" />
+      <module fileurl="file:///private/var/tmp/_bazel_steveconover/75e504d5d7c4c7b3fa28edc9a5be5ca0/execroot/__main__/bazel-out/darwin_x86_64-fastbuild/bin/extension_root.iml" filepath="/private/var/tmp/_bazel_steveconover/75e504d5d7c4c7b3fa28edc9a5be5ca0/execroot/__main__/bazel-out/darwin_x86_64-fastbuild/bin/extension_root.iml" />
     </modules>
   </component>
 </project>

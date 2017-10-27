@@ -29,13 +29,6 @@ java_binary(
 # TODO: some bazel+ junit5 magic can probably be done to make the tests run
 # automatically (without explicitly specifying a package), or from a directory or something.
 
-# TODO: the intellij integration has an inadvertent requirement that source_deps and
-# test_deps be java_binary's, which is a bug. Once this is solved,
-# split out the test libs from the core test stuff,
-# such that we can have a separate java_test target.
-# (As it stands, intellij_iml is not allowed to depend on a java_test
-# target, or anyhing with testonly=True set.)
-
 java_library(
   name="intellij_generate_tests_lib",
   srcs = glob(["src/test/java/**/*.java"]),
@@ -79,8 +72,8 @@ java_test(
 load("//:intellij_iml.bzl", "intellij_iml")
 intellij_iml(
     name = "extension_root",
-    source_deps = [":intellij_generate_lib"], # TODO: consider whether declaring this dependency explicitly is a good idea.
-    test_deps = [":intellij_generate_tests_lib"],
+    compile_lib_deps = [":intellij_generate_lib"],
+    test_lib_deps = [":intellij_generate_tests_lib"],
 )
 
 load("//:intellij_modules_xml.bzl", "intellij_modules_xml_executable")

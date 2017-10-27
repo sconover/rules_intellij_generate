@@ -1,12 +1,21 @@
-package(default_visibility = ["//src:__subpackages__"])
+package(default_visibility = ["//03_basic:__subpackages__"])
 
-# these tests assert on iml and other build output, and therefore should really
-# have some dependency on those things so that this doesn't execute out of order.
-# but not sure what to do about that at this point.
 java_library(
-    name = "scenario_tests_lib",
+    name = "gorilla_lib",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps=[
+      "//03_basic/primate:primate_lib",
+    ]
+)
+
+java_library(
+    name = "gorilla_tests_lib",
     srcs = glob(["src/test/java/**/*.java"]),
     deps=[
+      ":gorilla_lib",
+      "//03_basic/primate:primate_lib",
+      "//03_basic/mammal:mammal_lib",
+
       "@org_junit_jupiter_junit_jupiter_api//jar",
       "@org_junit_jupiter_junit_jupiter_engine//jar",
       "@org_junit_platform_junit_platform_commons//jar",
@@ -19,14 +28,14 @@ java_library(
 )
 
 java_test(
-  name="scenario_tests",
+  name="gorilla_tests",
   main_class="org.junit.platform.console.ConsoleLauncher",
   args=[
-    "--select-package intellij_generate.scenarios",
+    "--select-package basic.gorilla",
     "--details verbose",
   ],
   runtime_deps=[
-    ":scenario_tests_lib",
+    ":gorilla_tests_lib",
     "@org_junit_jupiter_junit_jupiter_api//jar",
   ],
   use_testrunner=False,
@@ -35,15 +44,8 @@ java_test(
 
 load("@rules_intellij_generate//:intellij_iml.bzl", "intellij_iml")
 intellij_iml(
-    name = "idea_root_module",
-    sources_roots = [],
-    compile_lib_deps = [],
-    test_sources_roots = ["src/test/java"],
-    test_lib_deps = [":scenario_tests_lib"],
-)
-
-load("@rules_intellij_generate//:intellij_modules_xml.bzl", "intellij_modules_xml_executable")
-intellij_modules_xml_executable(
-    name = "idea_project",
-    deps = [":idea_root_module"]
+    name = "idea_gorilla_module",
+    compile_lib_deps = [":gorilla_lib"],
+    compile_module_deps = ["//03_basic/primate:idea_primate_module"],
+    test_lib_deps = [":gorilla_tests_lib"],
 )

@@ -4,22 +4,20 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static intellij_generate.Util.fileJoin;
-import static intellij_generate.Util.readFile;
-import static intellij_generate.Util.writeLinesToFileAsUTF8;
+import static intellij_generate.ImlContent.makeImlContent;
+import static intellij_generate.JarLibraryEntry.loadLibraryEntriesFromManifestFile;
+import static intellij_generate.Util.checkPathExists;
+import static intellij_generate.Util.writeStringToFileAsUTF8;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
 
 public class Main {
-  public static final String CLASSLOADER_PREFIX_PATH = "CLASSLOADER_PREFIX_PATH";
   @Parameter(
     names = {"--content-root", "-cr"},
     description = "Path, typically relative to the iml's MODULE_DIR. Intellij will " +
@@ -68,99 +66,33 @@ public class Main {
   }
 
   public void run() {
-    List<LibraryEntry> mainLibraryEntries = loadLibraryEntriesFromManifestFile(mainLibrariesManifestPath);
-    List<LibraryEntry> testLibraryEntries = loadLibraryEntriesFromManifestFile(testLibrariesManifestPath);
+    String execRootPath = getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam();
 
-    Path pathOfImlDir = Paths.get(new File(imlPath).getParent()).toAbsolutePath();
-    Path pathOfContentRoot = Paths.get(contentRoot).toAbsolutePath();
-    String pathFromModuleDirToContentRoot = pathOfImlDir.relativize(pathOfContentRoot).toString();
-    String pathFromModuleDirToContentRootWithIntellijVariable =
-      format("$MODULE_DIR$/%s", pathFromModuleDirToContentRoot.replaceAll("/$", ""));
+    Path pathOfImlDir = checkPathExists(Paths.get(new File(imlPath).getParent()).toAbsolutePath());
+    Path pathOfContentRoot = checkPathExists(Paths.get(contentRoot).toAbsolutePath());
+    Path pathFromModuleDirToContentRoot = pathOfImlDir.relativize(pathOfContentRoot);
 
-    List<String> lines = new ArrayList<>();
-    lines.add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    lines.add("<module type=\"JAVA_MODULE\" version=\"4\">");
-    lines.add("  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"true\">");
-    lines.add("    <exclude-output />");
+    String imlContent =
+      makeImlContent(
+        pathFromModuleDirToContentRoot.toString(),
+        sourcesRoots,
+        testSourcesRoots,
+        loadLibraryEntriesFromManifestFile(execRootPath, mainLibrariesManifestPath),
+        loadLibraryEntriesFromManifestFile(execRootPath, testLibrariesManifestPath));
 
-    lines.add(format("    <content url=\"%s\">", "file://" + pathFromModuleDirToContentRootWithIntellijVariable));
-
-    sourcesRoots.forEach(sourcesRoot ->
-      lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"false\" />",
-        "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, sourcesRoot))));
-
-    testSourcesRoots.forEach(testSourcesRoot ->
-      lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"true\" />",
-        "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, testSourcesRoot))));
-
-    lines.add("    </content>");
-
-    lines.add("    <orderEntry type=\"jdk\" jdkName=\"1.8\" jdkType=\"JavaSDK\" />");
-    lines.add("    <orderEntry type=\"sourceFolder\" forTests=\"false\" />");
-
-    if (!mainLibraryEntries.isEmpty()) {
-      mainLibraryEntries.forEach(
-        libraryEntry ->
-          addLibraryOrderEntryLines(
-            pathFromModuleDirToContentRootWithIntellijVariable,
-            lines,
-            libraryEntry));
-    }
-
-    if (!testLibraryEntries.isEmpty()) {
-      testLibraryEntries.forEach(
-        libraryEntry ->
-          addLibraryOrderEntryLines(
-            pathFromModuleDirToContentRootWithIntellijVariable,
-            lines,
-            libraryEntry,
-            " scope=\"TEST\""));
-    }
-
-    lines.add("  </component>");
-    lines.add("</module>");
-
-    writeLinesToFileAsUTF8(imlPath, lines);
+    writeStringToFileAsUTF8(imlPath, imlContent);
   }
 
-  private static void addLibraryOrderEntryLines(
-    String pathFromModuleDirToContentRootWithIntellijVariable,
-    List<String> lines,
-    LibraryEntry libraryEntry) {
-    addLibraryOrderEntryLines(
-      pathFromModuleDirToContentRootWithIntellijVariable,
-      lines,
-      libraryEntry,
-      "");
-  }
-
-  private static void addLibraryOrderEntryLines(
-    String pathFromModuleDirToContentRootWithIntellijVariable,
-    List<String> lines,
-    LibraryEntry libraryEntry,
-    String extraOrderEntryAttributes) {
-    String libraryPath = "jar://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, libraryEntry.path);
-
-    lines.add(format("    <orderEntry type=\"module-library\"%s>", extraOrderEntryAttributes));
-    lines.add("      <library>");
-    lines.add("        <CLASSES>");
-    lines.add(format("          <root url=\"%s!/\" />", libraryPath));
-    lines.add("        </CLASSES>");
-    lines.add("        <JAVADOC />");
-    lines.add("        <SOURCES />");
-    lines.add("      </library>");
-    lines.add("    </orderEntry>");
-  }
-
-  private List<LibraryEntry> loadLibraryEntriesFromManifestFile(String librariesManifestPath) {
-    return asList(readFile(librariesManifestPath).split("\n")).stream()
-      .map(line -> {
-        String[] parts = line.split(" ");
-        String name = parts[0];
-        String path = parts[1];
-        return new LibraryEntry(name, path);
-      })
-      .collect(toList());
+  private String getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam() {
+    // this is awful and cannot be released, but I have no idea how else to get the execroot from the bazel env...
+    String pwd = System.getenv("PWD");
+    List<String> pwdParts = asList(pwd.split("/"));
+    // we're in the sandbox dir, which is two levels below the real execroot.
+    String workspaceName = pwdParts.get(pwdParts.size() - 1);
+    List<String> execRootParts = new ArrayList<>(pwdParts.subList(0, pwdParts.size() - 4));
+    execRootParts.add("execroot");
+    execRootParts.add(workspaceName);
+    return execRootParts.stream().collect(Collectors.joining("/"));
   }
 
   @Override
@@ -169,20 +101,5 @@ public class Main {
       format("contentRoot=%s", contentRoot) + "\n" +
       format("sourcesRoots=%s", sourcesRoots) + "\n" +
       format("imlPath=%s", imlPath);
-  }
-
-  private static class LibraryEntry {
-    public final String name;
-    public final String path;
-
-    public LibraryEntry(String name, String path) {
-      this.name = name;
-      this.path = path;
-    }
-
-    @Override
-    public String toString() {
-      return format("LibraryEntry[%s,%s]", name, path);
-    }
   }
 }

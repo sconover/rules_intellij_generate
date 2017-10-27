@@ -24,8 +24,6 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, java_de
 
 def _impl(ctx):
     """Based on ctx.attr inputs, invoke the iml-generating executable, and write the result to the designated iml path."""
-    # print(ctx.var)
-
     sources_roots_args = []
     for sources_root_attr in ctx.attr.sources_roots:
         sources_roots_args.append("--sources-root")
@@ -40,14 +38,14 @@ def _impl(ctx):
     test_library_manifest_file = _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, ctx.attr.test_deps, "test_libraries.manifest")
 
     ctx.action(
-        executable = ctx.executable._intellij_generate,
+        executable = ctx.executable._intellij_generate_iml,
         arguments = [
-          "--content-root", ctx.build_file_path.replace("BUILD", ".")] + # consider making this overridable via a ctx.attr
-          sources_roots_args +
-          test_sources_roots_args + [
-          "--main-libraries-manifest-path", main_library_manifest_file.path,
-          "--test-libraries-manifest-path", test_library_manifest_file.path,
-          "--iml-path", ctx.outputs.iml_file.path,
+            "--content-root", ctx.build_file_path.replace("BUILD", ".")] + # consider making this overridable via a ctx.attr
+            sources_roots_args +
+            test_sources_roots_args + [
+            "--main-libraries-manifest-path", main_library_manifest_file.path,
+            "--test-libraries-manifest-path", test_library_manifest_file.path,
+            "--iml-path", ctx.outputs.iml_file.path,
         ],
         inputs=[
             main_library_manifest_file,
@@ -55,6 +53,17 @@ def _impl(ctx):
         ],
         outputs=[ctx.outputs.iml_file],
         progress_message="Generating intellij iml file: %s" % ctx.outputs.iml_file.path)
+
+    # see: https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
+    # also make sure to read about providers: https://docs.bazel.build/versions/master/skylark/rules.html#providers
+    runfiles = ctx.runfiles(
+        # Add some files manually.
+        files = [ctx.outputs.iml_file],
+        # Collect runfiles from the common locations: transitively from srcs,
+        # deps and data attributes.
+        collect_default = True,
+    )
+    return [DefaultInfo(runfiles=runfiles)]
 
 intellij_iml = rule(
     doc="""Generate an intellij iml file, containing:
@@ -66,13 +75,13 @@ intellij_iml = rule(
     implementation=_impl,
 
     attrs={
-      "_intellij_generate": attr.label(default=Label("//:intellij_generate"), executable=True, cfg="target"),
+        "_intellij_generate_iml": attr.label(default=Label("//:intellij_generate_iml"), executable=True, cfg="target"),
 
-      "source_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the MAIN library section of the iml."),
-      "sources_roots": attr.string_list(default=["src/main/java"], doc="Intellij will mark each of these directories as a 'Sources Root'"),
+        "source_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the MAIN library section of the iml."),
+        "sources_roots": attr.string_list(default=["src/main/java"], doc="Intellij will mark each of these directories as a 'Sources Root'"),
 
-      "test_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the TEST library section of the iml."),
-      "test_sources_roots": attr.string_list(default=["src/test/java"], doc="Intellij will mark each of these directories as a 'Test Sources Root'"),
+        "test_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the TEST library section of the iml."),
+        "test_sources_roots": attr.string_list(default=["src/test/java"], doc="Intellij will mark each of these directories as a 'Test Sources Root'"),
     },
 
     outputs={"iml_file": "%{name}.iml"},

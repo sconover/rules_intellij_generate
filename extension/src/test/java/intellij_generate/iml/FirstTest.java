@@ -1,4 +1,4 @@
-package intellij_generate;
+package intellij_generate.iml;
 
 import org.junit.jupiter.api.Test;
 

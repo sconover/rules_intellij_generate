@@ -1,10 +1,10 @@
-package intellij_generate;
+package intellij_generate.iml;
 
 import org.junit.jupiter.api.Test;
 
-import static intellij_generate.ImlContent.makeImlContent;
-import static intellij_generate.TestUtil.xpath;
-import static intellij_generate.TestUtil.xpathList;
+import static intellij_generate.iml.ImlContent.makeImlContent;
+import static intellij_generate.testcommon.TestUtil.xpath;
+import static intellij_generate.testcommon.TestUtil.xpathList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;

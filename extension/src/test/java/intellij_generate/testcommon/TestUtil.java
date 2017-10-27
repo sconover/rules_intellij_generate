@@ -1,4 +1,4 @@
-package intellij_generate;
+package intellij_generate.testcommon;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -16,11 +16,11 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static intellij_generate.Util.checkState;
+import static intellij_generate.common.Util.checkState;
 import static java.lang.String.format;
 
 public class TestUtil {
-  static List<String> xpathList(String xmlDocument, String xpath) {
+  public static List<String> xpathList(String xmlDocument, String xpath) {
     NodeList nodeList = xpathNodeListFromDoc(xpath, parseXml(xmlDocument));
     List<String> results = new ArrayList<>();
     for (int i = 0; i < nodeList.getLength(); i++) {
@@ -29,7 +29,7 @@ public class TestUtil {
     return results;
   }
 
-  static String xpath(String xmlDocument, String xpath) {
+  public static String xpath(String xmlDocument, String xpath) {
     NodeList nodeList = xpathNodeListFromDoc(xpath, parseXml(xmlDocument));
     checkState(nodeList.getLength() == 1,
       format("expected number of results for xpath text result query to be exactly 1, " +

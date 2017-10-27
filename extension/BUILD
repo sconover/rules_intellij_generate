@@ -9,8 +9,17 @@ java_library(
 )
 
 java_binary(
-    name = "intellij_generate",
-    main_class = "intellij_generate.Main",
+    name = "intellij_generate_iml",
+    main_class = "intellij_generate.iml.Main",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        ":intellij_generate_lib",
+    ]
+)
+
+java_binary(
+    name = "intellij_generate_modules_xml",
+    main_class = "intellij_generate.modules_xml.Main",
     visibility = ["//visibility:public"],
     runtime_deps = [
         ":intellij_generate_lib",
@@ -72,4 +81,10 @@ intellij_iml(
     name = "extension_root",
     source_deps = [":intellij_generate_lib"], # TODO: consider whether declaring this dependency explicitly is a good idea.
     test_deps = [":intellij_generate_tests_lib"],
+)
+
+load("//:intellij_modules_xml.bzl", "intellij_modules_xml_executable")
+intellij_modules_xml_executable(
+    name = "idea",
+    deps = [":extension_root"]
 )

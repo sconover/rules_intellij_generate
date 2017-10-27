@@ -5,15 +5,17 @@ import com.beust.jcommander.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static intellij_generate.Util.fileJoin;
+import static intellij_generate.Util.readFile;
+import static intellij_generate.Util.writeLinesToFileAsUTF8;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
 public class Main {
@@ -32,6 +34,26 @@ public class Main {
   private List<String> sourcesRoots = new ArrayList<>();
 
   @Parameter(
+    names = {"--test-sources-root", "-tr"},
+    description = "Directories under the content root that should be marked as test roots, " +
+      "coloring the folder green, and making Intellij treat appropriately-named files under that root as code, " +
+      "that is indexed and navigable and so on.")
+  private List<String> testSourcesRoots = new ArrayList<>();
+
+  @Parameter(
+    names = {"--main-libraries-manifest-path", "-mp"},
+    description = "A file in two columns: column 1 is the library label, column 2 is the path to the library, " +
+      "of 'main' libraries that the source root files in the project depend upon.")
+  private String mainLibrariesManifestPath = null;
+
+  @Parameter(
+    names = {"--test-libraries-manifest-path", "-tp"},
+    description = "A file in two columns: column 1 is the library label, column 2 is the path to the library, " +
+      "of 'test' libraries that the test source root files in the project depend upon " +
+      "(but the main source files do not depend on).")
+  private String testLibrariesManifestPath = null;
+
+  @Parameter(
     names = {"--iml-path", "-iml"},
     description = "The goal of this operation is to generate an iml file whose path is indicated by this parameter.")
   private String imlPath = null;
@@ -46,40 +68,8 @@ public class Main {
   }
 
   public void run() {
-    String classloaderPrefixPath = System.getenv(CLASSLOADER_PREFIX_PATH);
-    checkState(classloaderPrefixPath != null, "env var CLASSLOADER_PREFIX_PATH must be present");
-
-    // 1) Walk the file tree rooted at CLASSLOADER_PREFIX_PATH
-    // 2) Filter down to any subdir/jars that are under "external"...
-    //    but exclude local_jdk from this.
-    // 3) Finally, remove the CLASSLOADER_PREFIX_PATH from the library file path.
-    //    this makes it so intellij can access consistently-available files laid
-    //    out in the same structure, but directly under the WORKSPACE root.
-    //
-    // Some precedent:
-    // https://github.com/bazelbuild/intellij/blob/master/aspect/intellij_info_impl.bzl#L48
-    //
-    // The bazel java_binary wrapper script template:
-    // https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/bazel/rules/java/java_stub_template.txt
-    //
-    // Also see the bazel java_stub_template, which is what hands us the CLASSLOADER_PREFIX_PATH
-    // env var.
-    //
-    // The approach used here is likely too brittle, and may be improved by making use of other
-    // representations of the same information (e.g. from a MANIFEST file...however the MANIFEST
-    // referred to in the above link is not available at runtime).
-    //
-    // I was also a little unsure about effectively treating the bazel output dirs as a public
-    // interface, however the bazelbuild/intellij reference, as well as the existence of documentation
-    // about the output dir structure:
-    // https://docs.bazel.build/versions/master/output_directories.html
-    // convinced me it's not terrible to do.
-    List<LibraryEntry> libraryEntries =
-      classloaderPrefixPathFileTree(classloaderPrefixPath).stream()
-        .filter(f -> f.startsWith(classloaderPrefixPath + "external") &&
-          !f.startsWith(classloaderPrefixPath + "external/local_jdk"))
-        .map(f -> new LibraryEntry(f.replace(classloaderPrefixPath, ""), f))
-        .collect(toList());
+    List<LibraryEntry> mainLibraryEntries = loadLibraryEntriesFromManifestFile(mainLibrariesManifestPath);
+    List<LibraryEntry> testLibraryEntries = loadLibraryEntriesFromManifestFile(testLibrariesManifestPath);
 
     Path pathOfImlDir = Paths.get(new File(imlPath).getParent()).toAbsolutePath();
     Path pathOfContentRoot = Paths.get(contentRoot).toAbsolutePath();
@@ -92,28 +82,39 @@ public class Main {
     lines.add("<module type=\"JAVA_MODULE\" version=\"4\">");
     lines.add("  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"true\">");
     lines.add("    <exclude-output />");
+
     lines.add(format("    <content url=\"%s\">", "file://" + pathFromModuleDirToContentRootWithIntellijVariable));
+
     sourcesRoots.forEach(sourcesRoot ->
       lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"false\" />",
         "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, sourcesRoot))));
+
+    testSourcesRoots.forEach(testSourcesRoot ->
+      lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"true\" />",
+        "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, testSourcesRoot))));
+
     lines.add("    </content>");
+
     lines.add("    <orderEntry type=\"jdk\" jdkName=\"1.8\" jdkType=\"JavaSDK\" />");
     lines.add("    <orderEntry type=\"sourceFolder\" forTests=\"false\" />");
 
-    if (!libraryEntries.isEmpty()) {
-      libraryEntries.forEach(libraryEntry -> {
-        String libraryPath = "jar://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, libraryEntry.path);
+    if (!mainLibraryEntries.isEmpty()) {
+      mainLibraryEntries.forEach(
+        libraryEntry ->
+          addLibraryOrderEntryLines(
+            pathFromModuleDirToContentRootWithIntellijVariable,
+            lines,
+            libraryEntry));
+    }
 
-        lines.add("    <orderEntry type=\"module-library\">");
-        lines.add("      <library>");
-        lines.add("        <CLASSES>");
-        lines.add(format("          <root url=\"%s!/\" />", libraryPath));
-        lines.add("        </CLASSES>");
-        lines.add("        <JAVADOC />");
-        lines.add("        <SOURCES />");
-        lines.add("      </library>");
-        lines.add("    </orderEntry>");
-      });
+    if (!testLibraryEntries.isEmpty()) {
+      testLibraryEntries.forEach(
+        libraryEntry ->
+          addLibraryOrderEntryLines(
+            pathFromModuleDirToContentRootWithIntellijVariable,
+            lines,
+            libraryEntry,
+            " scope=\"TEST\""));
     }
 
     lines.add("  </component>");
@@ -122,23 +123,52 @@ public class Main {
     writeLinesToFileAsUTF8(imlPath, lines);
   }
 
+  private static void addLibraryOrderEntryLines(
+    String pathFromModuleDirToContentRootWithIntellijVariable,
+    List<String> lines,
+    LibraryEntry libraryEntry) {
+    addLibraryOrderEntryLines(
+      pathFromModuleDirToContentRootWithIntellijVariable,
+      lines,
+      libraryEntry,
+      "");
+  }
+
+  private static void addLibraryOrderEntryLines(
+    String pathFromModuleDirToContentRootWithIntellijVariable,
+    List<String> lines,
+    LibraryEntry libraryEntry,
+    String extraOrderEntryAttributes) {
+    String libraryPath = "jar://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, libraryEntry.path);
+
+    lines.add(format("    <orderEntry type=\"module-library\"%s>", extraOrderEntryAttributes));
+    lines.add("      <library>");
+    lines.add("        <CLASSES>");
+    lines.add(format("          <root url=\"%s!/\" />", libraryPath));
+    lines.add("        </CLASSES>");
+    lines.add("        <JAVADOC />");
+    lines.add("        <SOURCES />");
+    lines.add("      </library>");
+    lines.add("    </orderEntry>");
+  }
+
+  private List<LibraryEntry> loadLibraryEntriesFromManifestFile(String librariesManifestPath) {
+    return asList(readFile(librariesManifestPath).split("\n")).stream()
+      .map(line -> {
+        String[] parts = line.split(" ");
+        String name = parts[0];
+        String path = parts[1];
+        return new LibraryEntry(name, path);
+      })
+      .collect(toList());
+  }
+
   @Override
   public String toString() {
     return "Make an intellij iml file:\n" +
       format("contentRoot=%s", contentRoot) + "\n" +
       format("sourcesRoots=%s", sourcesRoots) + "\n" +
       format("imlPath=%s", imlPath);
-  }
-
-  private static List<String> classloaderPrefixPathFileTree(String classloaderPrefixPath) {
-    try {
-      return Files.walk(Paths.get(classloaderPrefixPath))
-        .filter(Files::isRegularFile)
-        .map(f -> f.toString())
-        .collect(toList());
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
   }
 
   private static class LibraryEntry {
@@ -153,29 +183,6 @@ public class Main {
     @Override
     public String toString() {
       return format("LibraryEntry[%s,%s]", name, path);
-    }
-  }
-
-  private static void writeLinesToFileAsUTF8(String path, List<String> lines) {
-    new File(new File(path).getParent()).mkdirs();
-    try {
-      System.out.println(
-        format(">> IML CONTENT START %s", path) + "\n" +
-          lines.stream().collect(Collectors.joining("\n")) + "\n" +
-          format("<< IML CONTENT FINISH %s", path));
-      Files.write(Paths.get(path), lines, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private static String fileJoin(String aPath, String bPath) {
-    return new File(aPath, bPath).getPath();
-  }
-
-  private static void checkState(boolean condition, String message) {
-    if (!condition) {
-      throw new IllegalStateException(message);
     }
   }
 }

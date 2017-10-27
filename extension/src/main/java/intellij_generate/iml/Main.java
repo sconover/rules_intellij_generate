@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static intellij_generate.common.Util.checkPathExists;
 import static intellij_generate.common.Util.getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam;
 import static intellij_generate.common.Util.writeStringToFileAsUTF8;
 import static intellij_generate.iml.ImlContent.makeImlContent;
@@ -67,8 +66,8 @@ public class Main {
   private void run() {
     String execRootPath = getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam();
 
-    Path pathOfImlDir = checkPathExists(Paths.get(new File(imlPath).getParent()).toAbsolutePath());
-    Path pathOfContentRoot = checkPathExists(Paths.get(contentRoot).toAbsolutePath());
+    Path pathOfImlDir = Paths.get(new File(imlPath).getParent()).toAbsolutePath();
+    Path pathOfContentRoot = Paths.get(contentRoot).toAbsolutePath();
     Path pathFromModuleDirToContentRoot = pathOfImlDir.relativize(pathOfContentRoot);
 
     String imlContent =

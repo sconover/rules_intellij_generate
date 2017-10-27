@@ -1,5 +1,6 @@
-maven_server( name = "usa", url = "http://repo.maven.apache.org/maven2", )
+workspace(name="rules_intellij_generate_scenarios")
 
+maven_server( name = "usa", url = "http://repo.maven.apache.org/maven2", )
 maven_jar(server="usa", name="com_beust_jcommander",                        artifact="com.beust:jcommander:1.72")
 
 # junit 5
@@ -11,3 +12,8 @@ maven_jar(server="usa", name="org_junit_platform_junit_platform_engine",    arti
 maven_jar(server="usa", name="org_junit_platform_junit_platform_launcher",  artifact="org.junit.platform:junit-platform-launcher:1.0.1")
 maven_jar(server="usa", name="org_junit_platform_junit_platform_runner",    artifact="org.junit.platform:junit-platform-runner:1.0.1")
 maven_jar(server="usa", name="org_opentest4j_opentest4j",                   artifact="org.opentest4j:opentest4j:1.0.0")
+
+local_repository(
+    name = "rules_intellij_generate",
+    path = "../extension",
+)

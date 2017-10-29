@@ -58,6 +58,7 @@ java_test(
     "@org_junit_jupiter_junit_jupiter_api//jar",
   ],
   use_testrunner=False,
+  size="small",
 )
 
 # TODO: consider whether a convenient module method is in order.
@@ -69,15 +70,18 @@ java_test(
 #   compose an intellij iml
 # Also: make a junit 5 dependency filegroup
 
-load("//:intellij_iml.bzl", "intellij_iml")
+# use the rules developed in this project to also
+# generate intellij files for the project.
+
+load(":intellij_iml.bzl", "intellij_iml")
 intellij_iml(
     name = "extension_root",
     compile_lib_deps = [":intellij_generate_lib"],
     test_lib_deps = [":intellij_generate_tests_lib"],
 )
 
-load("//:intellij_modules_xml.bzl", "intellij_modules_xml_executable")
-intellij_modules_xml_executable(
+load(":intellij_modules_xml.bzl", "intellij_modules_xml")
+intellij_modules_xml(
     name = "idea",
     deps = [":extension_root"]
 )

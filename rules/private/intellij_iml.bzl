@@ -107,7 +107,7 @@ intellij_iml = rule(
     implementation=_impl,
 
     attrs={
-        "_intellij_generate_iml": attr.label(default=Label("//:intellij_generate_iml"), executable=True, cfg="target"),
+        "_intellij_generate_iml": attr.label(default=Label("//private:intellij_generate_iml"), executable=True, cfg="target"),
 
         "compile_module_deps": attr.label_list(doc="inteliij_iml targets, which will become COMPILE module dependencies in idea."),
         "compile_lib_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the COMPILE library section of the iml."),

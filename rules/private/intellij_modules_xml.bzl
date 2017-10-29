@@ -40,13 +40,13 @@ def _impl(ctx):
 
 # TODO: naming: also needs to generate misc.xml, probably...
 
-intellij_modules_xml_executable = rule(
+intellij_modules_xml = rule(
     doc="""Put all iml files in the dependency graph in an intellij modules.xml 'project' file.""",
     executable=True,
     implementation=_impl,
 
     attrs={
-        "_intellij_generate_modules_xml": attr.label(default=Label("//:intellij_generate_modules_xml"), executable=True, cfg="target"),
+        "_intellij_generate_modules_xml": attr.label(default=Label("//private:intellij_generate_modules_xml"), executable=True, cfg="target"),
         "deps": attr.label_list(doc="dependencies which will be walked all the way back, " +
           "to discover intellij_iml targets, in order to generate the modules.xml content. " +
           "This should typically be a single intellij_iml -based target (the 'root module'), " +

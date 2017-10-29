@@ -37,7 +37,7 @@ java_test(
   size="small",
 )
 
-load("@rules_intellij_generate//:intellij_iml.bzl", "intellij_iml")
+load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
     name = "idea_root_module",
     sources_roots = ["src"],
@@ -46,8 +46,8 @@ intellij_iml(
     test_lib_deps = [":one_class_and_one_test_tests_lib"],
 )
 
-load("@rules_intellij_generate//:intellij_modules_xml.bzl", "intellij_modules_xml_executable")
-intellij_modules_xml_executable(
+load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
+intellij_modules_xml(
     name = "idea_project",
     deps = [":idea_root_module"]
 )

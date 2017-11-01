@@ -41,7 +41,7 @@ java_test(
   size="small",
 )
 
-load("@rules_intellij_generate//:intellij_iml.bzl", "intellij_iml")
+load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
     name = "idea_dolphin_module",
     compile_lib_deps = [":dolphin_lib"],

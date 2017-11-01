@@ -1,7 +1,7 @@
 package(default_visibility = ["//03_basic:__subpackages__"])
 
-load("@rules_intellij_generate//:intellij_modules_xml.bzl", "intellij_modules_xml_executable")
-intellij_modules_xml_executable(
+load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
+intellij_modules_xml(
     name = "idea_project",
     deps = [
       "//03_basic/dolphin:idea_dolphin_module",

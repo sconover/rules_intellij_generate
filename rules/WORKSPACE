@@ -1,4 +1,4 @@
-workspace(name="rules_intellij_generate_scenarios")
+workspace(name="rules_intellij_generate")
 
 # junit 5
 maven_jar(name="org_junit_jupiter_junit_jupiter_api",         artifact="org.junit.jupiter:junit-jupiter-api:5.0.1")
@@ -10,11 +10,5 @@ maven_jar(name="org_junit_platform_junit_platform_launcher",  artifact="org.juni
 maven_jar(name="org_junit_platform_junit_platform_runner",    artifact="org.junit.platform:junit-platform-runner:1.0.1")
 maven_jar(name="org_opentest4j_opentest4j",                   artifact="org.opentest4j:opentest4j:1.0.0")
 
-local_repository(
-    name = "rules_intellij_generate",
-    path = "../rules",
-)
-
-load("@rules_intellij_generate//:def.bzl", "repositories_for_intellij_generate")
+load("//:def.bzl", "repositories_for_intellij_generate")
 repositories_for_intellij_generate()
-

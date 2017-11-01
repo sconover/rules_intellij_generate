@@ -5,16 +5,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static intellij_generate.common.Util.fileJoin;
+import static intellij_generate.iml.JarDependencyEntry.Scope.COMPILE;
+import static intellij_generate.iml.JarDependencyEntry.Scope.TEST;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 class ImlContent {
   static String makeImlContent(
     String pathFromModuleDirToContentRoot,
     List<String> sourcesRoots,
     List<String> testSourcesRoots,
-    List<JarLibraryEntry> mainLibraryEntries,
-    List<JarLibraryEntry> testLibraryEntries) {
-
+    List<ModuleDependencyEntry> moduleEntries,
+    List<JarDependencyEntry> libraryEntries) {
     String pathFromModuleDirToContentRootWithIntellijVariable =
       format("$MODULE_DIR$/%s", pathFromModuleDirToContentRoot.replaceAll("/$", ""));
 
@@ -39,24 +41,35 @@ class ImlContent {
     lines.add("    <orderEntry type=\"jdk\" jdkName=\"1.8\" jdkType=\"JavaSDK\" />");
     lines.add("    <orderEntry type=\"sourceFolder\" forTests=\"false\" />");
 
-    if (!mainLibraryEntries.isEmpty()) {
-      mainLibraryEntries.forEach(
-        jarLibraryEntry ->
-          addLibraryOrderEntryLines(
+    moduleEntries.forEach(moduleDependencyEntry -> {
+      lines.add(format("    <orderEntry type=\"module\" module-name=\"%s\" />", moduleDependencyEntry.name));
+    });
+
+    List<JarDependencyEntry> compileLibraryEntries = libraryEntries.stream()
+      .filter(l -> l.scope.equals(COMPILE))
+      .collect(toList());
+    List<JarDependencyEntry> testLibraryEntries = libraryEntries.stream()
+      .filter(l -> l.scope.equals(TEST))
+      .collect(toList());
+
+    if (!compileLibraryEntries.isEmpty()) {
+      compileLibraryEntries.forEach(
+        jarDependencyEntry ->
+          addJarOrderEntryLines(
             lines,
-            jarLibraryEntry));
+            jarDependencyEntry));
     }
 
     // entries already accounted for in the main lib list, should be removed from test libs.
     testLibraryEntries = new ArrayList<>(testLibraryEntries);
-    testLibraryEntries.removeAll(mainLibraryEntries);
+    testLibraryEntries.removeAll(compileLibraryEntries);
 
     if (!testLibraryEntries.isEmpty()) {
       testLibraryEntries.forEach(
-        jarLibraryEntry ->
-          addLibraryOrderEntryLines(
+        jarDependencyEntry ->
+          addJarOrderEntryLines(
             lines,
-            jarLibraryEntry,
+            jarDependencyEntry,
             " scope=\"TEST\""));
     }
 
@@ -66,18 +79,18 @@ class ImlContent {
     return lines.stream().collect(Collectors.joining("\n"));
   }
 
-  private static void addLibraryOrderEntryLines(List<String> lines, JarLibraryEntry jarLibraryEntry) {
-    addLibraryOrderEntryLines(
+  private static void addJarOrderEntryLines(List<String> lines, JarDependencyEntry jarDependencyEntry) {
+    addJarOrderEntryLines(
       lines,
-      jarLibraryEntry,
+      jarDependencyEntry,
       "");
   }
 
-  private static void addLibraryOrderEntryLines(
+  private static void addJarOrderEntryLines(
     List<String> lines,
-    JarLibraryEntry jarLibraryEntry,
+    JarDependencyEntry jarDependencyEntry,
     String extraOrderEntryAttributes) {
-    String libraryPath = "jar://" + jarLibraryEntry.path;
+    String libraryPath = "jar://" + jarDependencyEntry.path;
 
     lines.add(format("    <orderEntry type=\"module-library\"%s>", extraOrderEntryAttributes));
     lines.add("      <library>");

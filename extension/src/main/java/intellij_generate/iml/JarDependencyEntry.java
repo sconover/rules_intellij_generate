@@ -11,10 +11,18 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Represents an entry from a manifest file provided by the bazel build to the iml-generator.
- * The manifest file consists of two columns: name and path-on-disk-to-the-jar-file.
+ * The manifest file consists of three columns:
+ * - name
+ * - path-on-disk-to-the-jar-file
+ * - scope (e.g. COMPILE, TEST)
  */
-class JarLibraryEntry {
-  static List<JarLibraryEntry> loadLibraryEntriesFromManifestFile(String execRootPath, String librariesManifestPath) {
+class JarDependencyEntry {
+  enum Scope {
+    COMPILE,
+    TEST
+  }
+
+  static List<JarDependencyEntry> loadLibraryEntriesFromManifestFile(String execRootPath, String librariesManifestPath) {
     String fileContent = readFile(librariesManifestPath);
     if (fileContent.trim().length() == 0) {
       return new ArrayList<>();
@@ -24,7 +32,8 @@ class JarLibraryEntry {
           String[] parts = line.split(" ");
           String name = parts[0];
           String path = parts[1];
-          return new JarLibraryEntry(name, fileJoin(execRootPath, path));
+          String scope = parts[2];
+          return new JarDependencyEntry(name, fileJoin(execRootPath, path), Scope.valueOf(scope));
         })
         .collect(toList());
     }
@@ -32,10 +41,12 @@ class JarLibraryEntry {
 
   public final String name;
   public final String path;
+  public final Scope scope;
 
-  public JarLibraryEntry(String name, String path) {
+  public JarDependencyEntry(String name, String path, Scope scope) {
     this.name = name;
     this.path = path;
+    this.scope = scope;
   }
 
   @Override
@@ -43,7 +54,7 @@ class JarLibraryEntry {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    JarLibraryEntry that = (JarLibraryEntry) o;
+    JarDependencyEntry that = (JarDependencyEntry) o;
 
     return path.equals(that.path);
   }
@@ -55,6 +66,6 @@ class JarLibraryEntry {
 
   @Override
   public String toString() {
-    return format("JarLibraryEntry[%s,%s]", name, path);
+    return format("JarLibraryEntry[%s,%s,%s]", name, path, scope.name());
   }
 }

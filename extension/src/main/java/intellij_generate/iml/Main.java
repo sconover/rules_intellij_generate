@@ -12,7 +12,8 @@ import java.util.List;
 import static intellij_generate.common.Util.getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam;
 import static intellij_generate.common.Util.writeStringToFileAsUTF8;
 import static intellij_generate.iml.ImlContent.makeImlContent;
-import static intellij_generate.iml.JarLibraryEntry.loadLibraryEntriesFromManifestFile;
+import static intellij_generate.iml.JarDependencyEntry.loadLibraryEntriesFromManifestFile;
+import static intellij_generate.iml.ModuleDependencyEntry.loadModuleEntriesFromManifestFile;
 import static java.lang.String.format;
 
 public class Main {
@@ -37,17 +38,21 @@ public class Main {
   private List<String> testSourcesRoots = new ArrayList<>();
 
   @Parameter(
-    names = {"--main-libraries-manifest-path", "-mp"},
-    description = "A file in two columns: column 1 is the library label, column 2 is the path to the library, " +
-      "of 'main' libraries that the source root files in the project depend upon.")
-  private String mainLibrariesManifestPath = null;
+    names = {"--libraries-manifest-path", "-lmp"},
+    description = "A file in three columns: " +
+      "column 1 is the library label, " +
+      "column 2 is the path to the library, " +
+      "column 3 is the scope (either COMPILE or TEST), " +
+      "of libraries that the source root files in the project depend upon.")
+  private String librariesManifestPath = null;
 
   @Parameter(
-    names = {"--test-libraries-manifest-path", "-tp"},
-    description = "A file in two columns: column 1 is the library label, column 2 is the path to the library, " +
-      "of 'test' libraries that the test source root files in the project depend upon " +
-      "(but the main source files do not depend on).")
-  private String testLibrariesManifestPath = null;
+    names = {"--modules-manifest-path", "-mmp"},
+    description = "A file in two columns: " +
+      "column 1 is the module name, " +
+      "column 2 is the scope (either COMPILE or TEST), " +
+      "of idea modules in the project that this module depends upon.")
+  private String modulesManifestPath = null;
 
   @Parameter(
     names = {"--iml-path", "-iml"},
@@ -64,28 +69,35 @@ public class Main {
   }
 
   private void run() {
-    String execRootPath = getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam();
+    try {
+      String execRootPath = getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam();
 
-    Path pathOfImlDir = Paths.get(new File(imlPath).getParent()).toAbsolutePath();
-    Path pathOfContentRoot = Paths.get(contentRoot).toAbsolutePath();
-    Path pathFromModuleDirToContentRoot = pathOfImlDir.relativize(pathOfContentRoot);
+      Path pathOfImlDir = Paths.get(new File(imlPath).getParent()).toAbsolutePath();
+      Path pathOfContentRoot = Paths.get(contentRoot).toAbsolutePath();
+      Path pathFromModuleDirToContentRoot = pathOfImlDir.relativize(pathOfContentRoot);
 
-    String imlContent =
-      makeImlContent(
-        pathFromModuleDirToContentRoot.toString(),
-        sourcesRoots,
-        testSourcesRoots,
-        loadLibraryEntriesFromManifestFile(execRootPath, mainLibrariesManifestPath),
-        loadLibraryEntriesFromManifestFile(execRootPath, testLibrariesManifestPath));
+      String imlContent =
+        makeImlContent(
+          pathFromModuleDirToContentRoot.toString(),
+          sourcesRoots,
+          testSourcesRoots,
+          loadModuleEntriesFromManifestFile(modulesManifestPath),
+          loadLibraryEntriesFromManifestFile(execRootPath, librariesManifestPath));
 
-    writeStringToFileAsUTF8(imlPath, imlContent);
+      writeStringToFileAsUTF8(imlPath, imlContent);
+    } catch (Exception ex) {
+      throw new RuntimeException(format("Exception occurred while processing iml file: %s", this.toString()), ex);
+    }
   }
 
   @Override
   public String toString() {
-    return "Make an intellij iml file:\n" +
-      format("contentRoot=%s", contentRoot) + "\n" +
-      format("sourcesRoots=%s", sourcesRoots) + "\n" +
-      format("imlPath=%s", imlPath);
+    return "\nCreate IML:\n" +
+      format("  contentRoot=%s", contentRoot) + "\n" +
+      format("  sourcesRoots=%s", sourcesRoots) + "\n" +
+      format("  testSourcesRoots=%s", testSourcesRoots) + "\n" +
+      format("  modulesManifestPath=%s", modulesManifestPath) + "\n" +
+      format("  librariesManifestPath=%s", librariesManifestPath) + "\n" +
+      format("  imlPath=%s\n", imlPath);
   }
 }

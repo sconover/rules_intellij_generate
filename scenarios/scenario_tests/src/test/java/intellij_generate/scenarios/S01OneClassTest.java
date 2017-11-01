@@ -9,19 +9,19 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OneClassTest {
+public class S01OneClassTest {
   private static String imlContent;
 
   @BeforeAll
   public static void before_all() {
-    imlContent = loadBazelGeneratedImlFile("one_class/idea_root_module.iml");
+    imlContent = loadBazelGeneratedImlFile("01_one_class/idea_root_module.iml");
   }
 
   @Test
   public void source_folders() {
     // this scenario has one source file, in a non-maven-standard layout
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../../../one_class/./src"),
+      "file://$MODULE_DIR$/../../../../01_one_class/./src"),
       xpathList(imlContent, "/module/component/content/sourceFolder/@url"));
 
     assertEquals(

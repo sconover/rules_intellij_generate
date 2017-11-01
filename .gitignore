@@ -1,6 +1,7 @@
 bazel-*
 intellij-out
 workspace.xml
+uiDesigner.xml
 preferred-vcs.xml
 out/
 workspace.xml

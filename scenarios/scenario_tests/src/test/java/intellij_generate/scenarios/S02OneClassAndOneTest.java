@@ -10,20 +10,20 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OneClassAndOneTest {
+public class S02OneClassAndOneTest {
   private static String imlContent;
 
   @BeforeAll
   public static void before_all() {
-    imlContent = loadBazelGeneratedImlFile("one_class_and_one_test/idea_root_module.iml");
+    imlContent = loadBazelGeneratedImlFile("02_one_class_and_one_test/idea_root_module.iml");
   }
 
   @Test
   public void source_folders() {
     // this scenario has one source file, in a non-maven-standard layout
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../../../one_class_and_one_test/./src",
-      "file://$MODULE_DIR$/../../../../one_class_and_one_test/./test"),
+      "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./src",
+      "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./test"),
       xpathList(imlContent, "/module/component/content/sourceFolder/@url"));
 
     assertEquals(

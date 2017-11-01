@@ -41,9 +41,9 @@ load("@rules_intellij_generate//:intellij_iml.bzl", "intellij_iml")
 intellij_iml(
     name = "idea_root_module",
     sources_roots = ["src"],
-    source_deps = [":one_class_and_one_test"],
+    compile_lib_deps = [":one_class_and_one_test"],
     test_sources_roots = ["test"],
-    test_deps = [":one_class_and_one_test_tests_lib"],
+    test_lib_deps = [":one_class_and_one_test_tests_lib"],
 )
 
 load("@rules_intellij_generate//:intellij_modules_xml.bzl", "intellij_modules_xml_executable")

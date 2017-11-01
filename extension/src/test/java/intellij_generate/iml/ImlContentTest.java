@@ -57,15 +57,14 @@ public class ImlContentTest {
   }
 
   @Test
-  public void makes_main_lib_orderEntrys_in_order() {
+  public void makes_compile_lib_orderEntrys_in_order() {
     String imlContent =
       makeImlContent(
         "../../this-is-the-content-dir",
-        emptyList(), emptyList(),
+        emptyList(), emptyList(), emptyList(),
         asList(
-          new JarLibraryEntry("foolib", "foo/lib/path.jar"),
-          new JarLibraryEntry("barlib", "bar/lib/path.jar")),
-        emptyList());
+          new JarDependencyEntry("foolib", "foo/lib/path.jar", JarDependencyEntry.Scope.COMPILE),
+          new JarDependencyEntry("barlib", "bar/lib/path.jar", JarDependencyEntry.Scope.COMPILE)));
 
     assertEquals(asList(
       "jar://foo/lib/path.jar!/",
@@ -81,10 +80,10 @@ public class ImlContentTest {
     String imlContent =
       makeImlContent(
         "../../this-is-the-content-dir",
-        emptyList(), emptyList(),
-        emptyList(), asList(
-          new JarLibraryEntry("foolib", "foo/lib/path.jar"),
-          new JarLibraryEntry("barlib", "bar/lib/path.jar")));
+        emptyList(), emptyList(), emptyList(),
+        asList(
+          new JarDependencyEntry("foolib", "foo/lib/path.jar", JarDependencyEntry.Scope.TEST),
+          new JarDependencyEntry("barlib", "bar/lib/path.jar", JarDependencyEntry.Scope.TEST)));
 
     assertEquals(emptyList(),
       xpathList(imlContent, "/module/component/orderEntry[@type='module-library' and not(@scope)]/library/CLASSES/root/@url"));
@@ -100,13 +99,12 @@ public class ImlContentTest {
     String imlContent =
       makeImlContent(
         "../../this-is-the-content-dir",
-        emptyList(), emptyList(),
+        emptyList(), emptyList(), emptyList(),
         asList(
-          new JarLibraryEntry("foolib", "foo/lib/path.jar"),
-          new JarLibraryEntry("barlib", "bar/lib/path.jar")),
-        asList(
-          new JarLibraryEntry("barlib", "bar/lib/path.jar"),
-          new JarLibraryEntry("zzzlib", "zzz/lib/path.jar")));
+          new JarDependencyEntry("foolib", "foo/lib/path.jar", JarDependencyEntry.Scope.COMPILE),
+          new JarDependencyEntry("barlib", "bar/lib/path.jar", JarDependencyEntry.Scope.TEST),
+          new JarDependencyEntry("barlib", "bar/lib/path.jar", JarDependencyEntry.Scope.COMPILE),
+          new JarDependencyEntry("zzzlib", "zzz/lib/path.jar", JarDependencyEntry.Scope.TEST)));
 
     assertEquals(asList(
       "jar://foo/lib/path.jar!/",
@@ -118,7 +116,20 @@ public class ImlContentTest {
       xpathList(imlContent, "/module/component/orderEntry[@type='module-library' and @scope='TEST']/library/CLASSES/root/@url"));
   }
 
-    //TODO: what about src lib, test lib overlap? warn, w/ test-wins? how to communicate back warnings
-  // ...just return them and use stderr in Main?
-  //TODO: src libs, test libs, also overlap bug
+  @Test
+  public void make_compile_module_dependencies() {
+    String imlContent =
+      makeImlContent(
+        "../../this-is-the-content-dir",
+        emptyList(), emptyList(), asList(
+          new ModuleDependencyEntry("aaa-module", ModuleDependencyEntry.Scope.COMPILE),
+          new ModuleDependencyEntry("bbb-module", ModuleDependencyEntry.Scope.COMPILE)
+        ),
+        emptyList());
+
+    assertEquals(asList(
+      "aaa-module",
+      "bbb-module"),
+      xpathList(imlContent, "/module/component/orderEntry[@type='module']/@module-name"));
+  }
 }

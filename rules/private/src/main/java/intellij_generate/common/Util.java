@@ -46,6 +46,12 @@ public class Util {
     }
   }
 
+  public static void checkIsNotBlank(String value, String messagePrefix) {
+    if (value == null || "".equals(value)) {
+      throw new IllegalStateException(messagePrefix + " may not be null or blank.");
+    }
+  }
+
   public static Path checkPathExists(Path path) {
     checkState(path.toFile().exists(), format("expected path to exist: %s", path));
     return path;

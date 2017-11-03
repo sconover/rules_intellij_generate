@@ -29,12 +29,6 @@ def _impl(ctx):
         ],
         progress_message="Generating intellij modules.xml file: %s" % ctx.outputs.modules_xml_file.path)
 
-    ctx.file_action(
-        output=ctx.outputs.executable,
-        content="#!/bin/bash -e\necho HELLO\n",
-        executable=True
-    )
-
 # this just auto-builds an xml based on the set of targets you specify at build time
 # so, should it's just the result of some bazel build invocation (however you want to run that...
 # multiple modules etc)
@@ -44,7 +38,6 @@ def _impl(ctx):
 
 intellij_modules_xml = rule(
     doc="""Put all iml files in the dependency graph in an intellij modules.xml 'project' file.""",
-    executable=True,
     implementation=_impl,
 
     attrs={

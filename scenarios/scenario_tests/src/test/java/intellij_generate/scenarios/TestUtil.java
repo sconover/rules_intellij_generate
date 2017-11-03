@@ -42,7 +42,7 @@ public class TestUtil {
     }
   }
 
-  public static String loadBazelGeneratedImlFile(String pathRelativeToBazelBin) {
+  public static String loadBazelGeneratedFile(String pathRelativeToBazelBin) {
     return readFile(format("../%s", pathRelativeToBazelBin));
   }
 

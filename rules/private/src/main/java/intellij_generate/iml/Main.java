@@ -18,27 +18,27 @@ import static java.lang.String.format;
 
 public class Main {
   @Parameter(
-    names = {"--content-root", "-cr"},
+    names = {"--content-root"},
     description = "Path, typically relative to the iml's MODULE_DIR. Intellij will " +
       "present files under this directory as the module's apparent contents.")
   private String contentRoot = null;
 
   @Parameter(
-    names = {"--sources-root", "-sr"},
+    names = {"--sources-root"},
     description = "Directories under the content root that should be marked as source roots, " +
       "coloring the folder blue, and making Intellij treat appropriately-named files under that root as code, " +
       "that is indexed and navigable and so on.")
   private List<String> sourcesRoots = new ArrayList<>();
 
   @Parameter(
-    names = {"--test-sources-root", "-tr"},
+    names = {"--test-sources-root"},
     description = "Directories under the content root that should be marked as test roots, " +
       "coloring the folder green, and making Intellij treat appropriately-named files under that root as code, " +
       "that is indexed and navigable and so on.")
   private List<String> testSourcesRoots = new ArrayList<>();
 
   @Parameter(
-    names = {"--libraries-manifest-path", "-lmp"},
+    names = {"--libraries-manifest-path"},
     description = "A file in three columns: " +
       "column 1 is the library label, " +
       "column 2 is the path to the library, " +
@@ -47,7 +47,7 @@ public class Main {
   private String librariesManifestPath = null;
 
   @Parameter(
-    names = {"--modules-manifest-path", "-mmp"},
+    names = {"--modules-manifest-path"},
     description = "A file in two columns: " +
       "column 1 is the module name, " +
       "column 2 is the scope (either COMPILE or TEST), " +
@@ -55,7 +55,31 @@ public class Main {
   private String modulesManifestPath = null;
 
   @Parameter(
-    names = {"--iml-path", "-iml"},
+    names = {"--production-output-dir"},
+    description = "Path relative to the content root, where production/main class files, generated " +
+      "code, and other output, will be written, by intellij.")
+  private String productionOutputDir = null;
+
+  @Parameter(
+    names = {"--test-output-dir"},
+    description = "Path relative to the content root, where test class files, generated " +
+      "code, and other output, will be written, by intellij.")
+  private String testOutputDir = null;
+
+  @Parameter(
+    names = {"--generated-sources-dir"},
+    description = "Path relative to the production output directory, where generated production/main class files" +
+      " and resources will be written, by intellij.")
+  private String generatedSourcesDir = null;
+
+  @Parameter(
+    names = {"--generated-test-sources-dir"},
+    description = "Path relative to the test output directory, where generated test class files and resources" +
+      " will be written, by intellij.")
+  private String generatedTestSourcesDir = null;
+
+  @Parameter(
+    names = {"--iml-path"},
     description = "The goal of this operation is to generate an iml file whose path is indicated by this parameter.")
   private String imlPath = null;
 
@@ -79,6 +103,10 @@ public class Main {
       String imlContent =
         makeImlContent(
           pathFromModuleDirToContentRoot.toString(),
+          productionOutputDir,
+          testOutputDir,
+          generatedSourcesDir,
+          generatedTestSourcesDir,
           sourcesRoots,
           testSourcesRoots,
           loadModuleEntriesFromManifestFile(modulesManifestPath),

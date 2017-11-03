@@ -1,1 +1,2 @@
 test --test_output=errors --action_env="GTEST_COLOR=1"
+build --incompatible_disallow_set_constructor=false

@@ -21,6 +21,7 @@ public class ImlContentTest {
   private String generatedTestSourcesDirRelativeToTestOutputDir;
   private List<String> sourcesRoots;
   private List<String> testSourcesRoots;
+  private List<String> resourcesRoots;
   private List<ModuleDependencyEntry> moduleEntries;
   private List<JarDependencyEntry> libraryEntries;
 
@@ -33,6 +34,7 @@ public class ImlContentTest {
     generatedTestSourcesDirRelativeToTestOutputDir = "default_generated_test_sources_subdir";
     sourcesRoots = emptyList();
     testSourcesRoots = emptyList();
+    resourcesRoots = emptyList();
     moduleEntries = emptyList();
     libraryEntries = emptyList();
   }
@@ -46,6 +48,7 @@ public class ImlContentTest {
       generatedTestSourcesDirRelativeToTestOutputDir,
       sourcesRoots,
       testSourcesRoots,
+      resourcesRoots,
       moduleEntries,
       libraryEntries);
   }
@@ -105,6 +108,18 @@ public class ImlContentTest {
     assertEquals(
       asList("true", "true"),
       xpathList(imlContent, "/module/component/content/sourceFolder[not(@generated)]/@isTestSource"));
+  }
+
+  @Test
+  public void makes_resources_roots_within_content_root() {
+    pathFromModuleDirToContentRoot = "../../this-is-the-content-dir";
+    resourcesRoots = asList("foosrc/main/resources", "barsrc/test/resources");
+    String imlContent = makeImlContentForTest();
+
+    assertEquals(asList(
+      "file://$MODULE_DIR$/../../this-is-the-content-dir/foosrc/main/resources",
+      "file://$MODULE_DIR$/../../this-is-the-content-dir/barsrc/test/resources"),
+      xpathList(imlContent, "/module/component/content/sourceFolder[@type='java-resource']/@url"));
   }
 
   @Test

@@ -1,5 +1,8 @@
+load(":intellij_iml.bzl", "iml_info_provider")
+
 def _impl(ctx):
-    """TODO"""
+    """Based on ctx.attr inputs, invoke the modules.xml-generating executable,
+       and write the result to the designated modules.xml path."""
 
     # TODO: only consider certain modules and their deps, like pants idea. perhaps use --define's as in
     # https://groups.google.com/forum/#!topic/bazel-discuss/bC-D__OJkgk
@@ -7,23 +10,21 @@ def _impl(ctx):
     # "--define=<a 'name=value' assignment> multiple uses are accumulated
     #  Each --define option specifies an assignment for a build variable."
 
-    # collect up all runfiles from providers from targets this target depends on
-    transitive_runfiles = depset()
+    # collect up all iml files from all parent modules
+    iml_files = depset()
     for dep in ctx.attr.deps:
-        for f in dep[DefaultInfo].files:
-            if f.path.endswith(".iml"):
-                transitive_runfiles += [f]
-
-    # TODO: select only iml files (?)
+        iml_files += [dep[iml_info_provider].iml_module_file]
+        for f in dep[iml_info_provider].transitive_iml_module_files:
+            iml_files += dep[iml_info_provider].transitive_iml_module_files
 
     iml_path_args = []
-    for f in transitive_runfiles:
+    for f in iml_files:
         iml_path_args += ["--iml-path", f.path]
 
     ctx.action(
-        executable = ctx.executable._intellij_generate_modules_xml,
-        arguments = iml_path_args + ["--modules-xml-path", ctx.outputs.modules_xml_file.path],
-        inputs=transitive_runfiles,
+        executable=ctx.executable._intellij_generate_modules_xml,
+        arguments=iml_path_args + ["--modules-xml-path", ctx.outputs.modules_xml_file.path],
+        inputs=iml_files,
         outputs=[
           ctx.outputs.modules_xml_file,
         ],
@@ -43,9 +44,7 @@ intellij_modules_xml = rule(
     attrs={
         "_intellij_generate_modules_xml": attr.label(default=Label("//private:intellij_generate_modules_xml"), executable=True, cfg="target"),
         "deps": attr.label_list(doc="dependencies which will be walked all the way back, " +
-          "to discover intellij_iml targets, in order to generate the modules.xml content. " +
-          "This should typically be a single intellij_iml -based target (the 'root module'), " +
-          "especially in small-to-medium sized projects."),
+          "to discover intellij_iml targets, in order to generate the modules.xml content."),
     },
 
     outputs={"modules_xml_file": "%{name}_modules.xml"},

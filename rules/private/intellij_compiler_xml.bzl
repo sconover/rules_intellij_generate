@@ -2,7 +2,8 @@ load(":constants.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDI
 load(":intellij_iml.bzl", "iml_info_provider") # see https://bazel.build/designs/skylark/declared-providers.html
 
 def _impl(ctx):
-    """TODO"""
+    """Based on ctx.attr inputs, invoke the compiler.xml-generating executable,
+       and write the result to the designated compiler.xml path."""
 
     args = []
 
@@ -37,7 +38,24 @@ def _impl(ctx):
         progress_message="Generating intellij compiler.xml file: %s" % ctx.outputs.compiler_xml_file.path)
 
 intellij_compiler_xml = rule(
-    doc="""TODO""",
+    doc="""Given a mapping of iml module targets to profile names, generate an intellij compiler.xml file.
+
+           This file contains annotation processor settings, which are visible in Preferences under
+           "Build, Execution, Deployment">"Compiler">"Annotation Processors".
+
+           The main challenge in this is taking the DAG of annotation processor information and
+           mapping it to the way intellij represents annotation processor settings. It's best
+           to go try out the aforementioned settings pane to understand this, but in short:
+
+           - Intellij allows for definition of multiple (named) annotation processor "profiles".
+           - Each profile may have one or more associated iml modules
+             - An iml module may only be contained within one profile
+           - Each profile may have many annotation processors. These are the processors that
+             will be invoked for usages (e.g. annotated classes) in the given set of modules.
+
+           This rule bridges java_plugin usages to intellij config - it does not provide any
+           other help in making annotation processing work (e.g. as AutoService does).
+           """,
     implementation=_impl,
 
     attrs={

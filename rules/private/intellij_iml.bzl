@@ -12,7 +12,17 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_t
         debug_log_lines.append("  process scope: '%s'" % scope)
         for dep in scope_to_java_deps[scope]:
             debug_log_lines.append("    process dependency: '%s'" % dep.label)
-            for cp_item in dep.java.compilation_info.runtime_classpath.to_list():
+            if len(dep.java.compilation_info.compilation_classpath.to_list())>0:
+                debug_log_lines.append("      java compilation classpath: '%s'" % dep.java.compilation_info.compilation_classpath.to_list())
+            if len(dep.java.compilation_info.runtime_classpath.to_list())>0:
+                debug_log_lines.append("      java runtime classpath: '%s'" % dep.java.compilation_info.runtime_classpath.to_list())
+            if len(dep.java.transitive_deps.to_list()) > 0:
+                debug_log_lines.append("      java transitive deps: '%s'" % dep.java.transitive_deps.to_list())
+            if len(dep.java.transitive_exports.to_list()) > 0:
+                debug_log_lines.append("      java transitive exports: '%s'" % dep.java.transitive_exports.to_list())
+            if len(dep.java.transitive_runtime_deps.to_list()) > 0:
+                debug_log_lines.append("      java transitive runtime deps: '%s'" % dep.java.transitive_runtime_deps.to_list())
+            for cp_item in (dep.java.compilation_info.runtime_classpath + dep.java.transitive_runtime_deps).to_list():
                 if cp_item.is_source:
                     debug_log_lines.append("      add classpath item: '%s'" % cp_item.path)
                     # I would LOVE to make aboslute paths to java libs RIGHT HERE, vs figure out the

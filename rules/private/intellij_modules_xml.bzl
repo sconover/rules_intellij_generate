@@ -10,7 +10,9 @@ def _impl(ctx):
     # collect up all runfiles from providers from targets this target depends on
     transitive_runfiles = depset()
     for dep in ctx.attr.deps:
-        transitive_runfiles += dep[DefaultInfo].files
+        for f in dep[DefaultInfo].files:
+            if f.path.endswith(".iml"):
+                transitive_runfiles += [f]
 
     # TODO: select only iml files (?)
 

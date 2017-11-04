@@ -1,5 +1,7 @@
 workspace(name="rules_intellij_generate_scenarios")
 
+maven_jar(name="com_google_guava_guava",         artifact="com.google.guava:guava:19.0")
+
 # junit 5
 maven_jar(name="org_junit_jupiter_junit_jupiter_api",         artifact="org.junit.jupiter:junit-jupiter-api:5.0.1")
 maven_jar(name="org_junit_jupiter_junit_jupiter_engine",      artifact="org.junit.jupiter:junit-jupiter-engine:5.0.1")

@@ -1,10 +1,10 @@
-load(":common.bzl", "install_script_provider")
+load(":common.bzl", "install_script_provider", "dot_idea_project_dir_relative_to_workspace_root")
 
 def _impl(ctx):
     """Based on ctx.attr inputs, invoke the modules.xml-generating executable,
        and write the result to the designated modules.xml path."""
 
-    dot_idea_project_dir=ctx.build_file_path.rstrip("/BUILD") + "/.idea"
+    dot_idea_project_dir=dot_idea_project_dir_relative_to_workspace_root(ctx)
     compiler_xml_installer=ctx.attr.intellij_compiler_xml != None
 
     ctx.actions.expand_template(

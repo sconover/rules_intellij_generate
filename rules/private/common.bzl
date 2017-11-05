@@ -20,4 +20,14 @@ install_script_provider = provider(
         """,
   fields = {
     "install_script_file": "The install script.",
+    "transitive_install_script_files": "Install scripts for parents of this target.",
   })
+
+def path_relative_to_workspace_root(ctx, relative_path):
+    return ctx.build_file_path.rstrip("/BUILD") + "/" + relative_path
+
+def project_dir_relative_to_workspace_root(ctx):
+    return ctx.build_file_path.rstrip("/BUILD")
+
+def dot_idea_project_dir_relative_to_workspace_root(ctx):
+    return project_dir_relative_to_workspace_root(ctx) + "/.idea"

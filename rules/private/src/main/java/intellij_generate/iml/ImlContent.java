@@ -12,8 +12,9 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 class ImlContent {
+  private static final String MODULE_ROOT = "file://$MODULE_DIR$";
+
   static String makeImlContent(
-    String pathFromModuleDirToContentRoot,
     String productionOutputDirRelativeToContentRoot,
     String testOutputDirRelativeToContentRoot,
     String generatedSourcesDirRelativeToProductionOutputDir,
@@ -23,19 +24,15 @@ class ImlContent {
     List<String> resourcesRoots,
     List<ModuleDependencyEntry> moduleEntries,
     List<JarDependencyEntry> libraryEntries) {
-    checkIsNotBlank(pathFromModuleDirToContentRoot, "pathFromModuleDirToContentRoot");
-    checkIsNotBlank(productionOutputDirRelativeToContentRoot, "productionOutputDirRelativeToContentRoot");
-    checkIsNotBlank(testOutputDirRelativeToContentRoot, "testOutputDirRelativeToContentRoot");
 
-    String pathFromModuleDirToContentRootWithIntellijVariable = pathRelativeToModuleRoot(pathFromModuleDirToContentRoot);
-    String productionOutputDir =
-      fileJoin(
-        pathFromModuleDirToContentRootWithIntellijVariable,
-        productionOutputDirRelativeToContentRoot);
-    String testOutputDir =
-      fileJoin(
-        pathFromModuleDirToContentRootWithIntellijVariable,
-        testOutputDirRelativeToContentRoot);
+    checkIsNotBlank(productionOutputDirRelativeToContentRoot,
+      "productionOutputDirRelativeToContentRoot");
+    checkIsNotBlank(testOutputDirRelativeToContentRoot,
+      "testOutputDirRelativeToContentRoot");
+    checkIsNotBlank(generatedSourcesDirRelativeToProductionOutputDir,
+      "generatedSourcesDirRelativeToProductionOutputDir");
+    checkIsNotBlank(generatedTestSourcesDirRelativeToTestOutputDir,
+      "generatedTestSourcesDirRelativeToTestOutputDir");
 
     List<String> lines = new ArrayList<>();
     lines.add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -46,28 +43,33 @@ class ImlContent {
     // by intellij "project-level" settings and defaults.
     lines.add("  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"false\">");
     lines.add("    <exclude-output />");
-    lines.add(format("    <output url=\"file://%s\"/>", productionOutputDir));
-    lines.add(format("    <output-test url=\"file://%s\"/>", testOutputDir));
+    lines.add(format("    <output url=\"%s\"/>",
+      pathRelativeToModuleRoot(productionOutputDirRelativeToContentRoot)));
+    lines.add(format("    <output-test url=\"%s\"/>",
+      pathRelativeToModuleRoot(testOutputDirRelativeToContentRoot)));
 
-    lines.add(format("    <content url=\"%s\">", "file://" + pathFromModuleDirToContentRootWithIntellijVariable));
+    lines.add(format("    <content url=\"%s\">", MODULE_ROOT));
 
     lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"false\" generated=\"true\" />",
-      "file://" + fileJoin(productionOutputDir, generatedSourcesDirRelativeToProductionOutputDir)));
+      pathRelativeToModuleRoot(
+        fileJoin(productionOutputDirRelativeToContentRoot, generatedSourcesDirRelativeToProductionOutputDir))));
+
     lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"true\" generated=\"true\" />",
-      "file://" + fileJoin(testOutputDir, generatedTestSourcesDirRelativeToTestOutputDir)));
+      pathRelativeToModuleRoot(
+        fileJoin(testOutputDirRelativeToContentRoot, generatedTestSourcesDirRelativeToTestOutputDir))));
 
     sourcesRoots.forEach(sourcesRoot ->
       lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"false\" />",
-        "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, sourcesRoot))));
+        pathRelativeToModuleRoot(sourcesRoot))));
 
     testSourcesRoots.forEach(testSourcesRoot ->
       lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"true\" />",
-        "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, testSourcesRoot))));
+        pathRelativeToModuleRoot(testSourcesRoot))));
 
     resourcesRoots.forEach(resourcesRoot ->
       lines.add(
         format("      <sourceFolder url=\"%s\" type=\"java-resource\" />",
-          "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, resourcesRoot))));
+          pathRelativeToModuleRoot(resourcesRoot))));
 
     lines.add("    </content>");
 
@@ -113,7 +115,7 @@ class ImlContent {
   }
 
   private static String pathRelativeToModuleRoot(String pathFromModuleDirToContentRoot) {
-    return format("$MODULE_DIR$/%s", pathFromModuleDirToContentRoot.replaceAll("/$", ""));
+    return format(MODULE_ROOT + "/%s", pathFromModuleDirToContentRoot.replaceAll("/$", ""));
   }
 
   private static void addJarOrderEntryLines(List<String> lines, JarDependencyEntry jarDependencyEntry) {

@@ -15,7 +15,7 @@ load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
     name = "idea_root_module",
     sources_roots = ["src"],
-    compile_lib_deps = [":one_class"], # TODO: consider whether declaring this dependency explicitly is a good idea.
+    compile_lib_deps = [":one_class"],
     test_sources_roots = [],
     test_lib_deps = [],
 )

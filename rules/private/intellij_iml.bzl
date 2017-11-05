@@ -1,4 +1,5 @@
-load(":common.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR")
+load(":common.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR",
+    "install_script_provider", "path_relative_to_workspace_root")
 
 # see https://bazel.build/designs/skylark/declared-providers.html
 iml_info_provider = provider(
@@ -17,13 +18,15 @@ iml_info_provider = provider(
 
     "iml_module_file": "This iml module's file.",
     "transitive_iml_module_files": "Files of all parent iml modules, of this iml module.",
+
+    "iml_path_relative_to_workspace_root": "Path to where the iml file gets symlinked, relative to the workspace root.",
+    "transitive_iml_paths_relative_to_workspace_root": "Paths to where the iml file gets symlinked, relative to the workspace root, for all parent iml's.",
   })
-
-
 
 # should subtract out jars based on immediate compile-lib deps, and jars based on module deps
 # perhaps more generally: if the project (source roots) contains all the source files for a jar dep, ignore than dep
-
+# (This is an ongoing challenge, the solution in place probably isn't quite general enough,
+#  it may well lead to unforeseen [bad] surprises. See code comments below.)
 def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_to_java_deps, artifact_exclude_paths, manifest_file_name, debug_log_lines):
     """Given a bazel rule ctx, a list of java dependency labels,
        find all java jar libraries for the dependencies,
@@ -108,6 +111,69 @@ def _prepare_module_manifest_file(ctx, scope_to_idea_module_deps, manifest_file_
     debug_log_lines.append("  wrote %d bytes to '%s'" % (len(module_manifest_content), module_manifest_file.path))
     return module_manifest_file
 
+def _iml_path_relative_to_workspace_root(ctx):
+    return path_relative_to_workspace_root(ctx, ctx.attr.name + ".iml")
+
+def _prepare_iml_info_provider_result(ctx):
+    """This is the way parent iml module information is known by child modules,
+       so that module and library dependencies can be properly generated for
+       intellij files (i.e. the .iml's).
+    """
+    transitive_compile_lib_deps = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_compile_lib_deps += dep[iml_info_provider].compile_lib_deps
+        transitive_compile_lib_deps += dep[iml_info_provider].transitive_compile_lib_deps
+
+    transitive_iml_module_names = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_iml_module_names += [dep[iml_info_provider].iml_module_name]
+        transitive_iml_module_names += dep[iml_info_provider].transitive_iml_module_names
+
+    transitive_iml_module_files = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_iml_module_files += [dep[iml_info_provider].iml_module_file]
+        transitive_iml_module_files += dep[iml_info_provider].transitive_iml_module_files
+
+    transitive_iml_paths_relative_to_workspace_root = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_iml_paths_relative_to_workspace_root += [dep[iml_info_provider].iml_path_relative_to_workspace_root]
+        transitive_iml_paths_relative_to_workspace_root += dep[iml_info_provider].transitive_iml_paths_relative_to_workspace_root
+
+    return iml_info_provider(
+        compile_lib_deps=ctx.attr.compile_lib_deps,
+        transitive_compile_lib_deps=transitive_compile_lib_deps,
+
+        iml_module_name=ctx.attr.name,
+        transitive_iml_module_names=transitive_iml_module_names,
+
+        iml_module_file=ctx.outputs.iml_file,
+        transitive_iml_module_files=transitive_iml_module_files,
+
+        iml_path_relative_to_workspace_root=_iml_path_relative_to_workspace_root(ctx),
+        transitive_iml_paths_relative_to_workspace_root=transitive_iml_paths_relative_to_workspace_root,
+    )
+
+def _create_install_script_and_return_install_script_provider(ctx):
+    """An installer script, that makes a symlink to the generated iml file."""
+
+    ctx.actions.expand_template(
+        output=ctx.outputs.iml_module_installer_script_file,
+        template=ctx.file._install_script_template_file,
+        substitutions={
+          "{{iml_path_relative_to_workspace_root}}": _iml_path_relative_to_workspace_root(ctx),
+        },
+        is_executable=True)
+
+    transitive_install_script_files = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_install_script_files += [dep[install_script_provider].install_script_file]
+        transitive_install_script_files += dep[install_script_provider].transitive_install_script_files
+
+    return install_script_provider(
+        install_script_file=ctx.outputs.iml_module_installer_script_file,
+        transitive_install_script_files=transitive_install_script_files
+    )
+
 def _impl(ctx):
     """Based on ctx.attr inputs, invoke the iml-generating executable,
        and write the result to the designated iml path."""
@@ -163,7 +229,6 @@ def _impl(ctx):
     kwargs = {
         "executable": ctx.executable._intellij_generate_iml,
         "arguments": [
-            "--content-root", ctx.build_file_path.replace("BUILD", "."),
             "--production-output-dir", ctx.attr.production_output_dir,
             "--test-output-dir", ctx.attr.test_output_dir,
             "--generated-sources-dir", GENERATED_SOURCES_SUBDIR,
@@ -199,35 +264,10 @@ def _impl(ctx):
     debug_log_lines.append("FINISHED IML")
     ctx.actions.write(output=ctx.outputs.iml_gen_debug_log, content="\n".join(debug_log_lines) + "\n")
 
-
-    # == prepare and return iml_info_provider result ==
-
-    transitive_compile_lib_deps = []
-    for dep in ctx.attr.compile_module_deps:
-        transitive_compile_lib_deps += dep[iml_info_provider].compile_lib_deps
-        transitive_compile_lib_deps += dep[iml_info_provider].transitive_compile_lib_deps
-
-    transitive_iml_module_names = []
-    for dep in ctx.attr.compile_module_deps:
-        transitive_iml_module_names += [dep[iml_info_provider].iml_module_name]
-        transitive_iml_module_names += dep[iml_info_provider].transitive_iml_module_names
-
-    transitive_iml_module_files = []
-    for dep in ctx.attr.compile_module_deps:
-        transitive_iml_module_files += [dep[iml_info_provider].iml_module_file]
-        transitive_iml_module_files += dep[iml_info_provider].transitive_iml_module_files
-
     return [
-        iml_info_provider(
-            compile_lib_deps=ctx.attr.compile_lib_deps,
-            transitive_compile_lib_deps=transitive_compile_lib_deps,
-
-            iml_module_name=ctx.attr.name,
-            transitive_iml_module_names=transitive_iml_module_names,
-
-            iml_module_file=ctx.outputs.iml_file,
-            transitive_iml_module_files=transitive_iml_module_files,
-        )]
+        _prepare_iml_info_provider_result(ctx),
+        _create_install_script_and_return_install_script_provider(ctx),
+    ]
 
 intellij_iml = rule(
     doc="""Generate an intellij iml file, containing:
@@ -241,6 +281,8 @@ intellij_iml = rule(
     implementation=_impl,
 
     attrs={
+        "_install_script_template_file": attr.label(
+            default=Label("//private:install_intellij_iml.sh.template"), allow_files=True, single_file=True),
         "_intellij_generate_iml": attr.label(
             default=Label("//private:intellij_generate_iml"),
             executable=True,
@@ -269,5 +311,9 @@ intellij_iml = rule(
             doc="Intellij output directory for test classes and resources. Path is relative to the module content root."),
     },
 
-    outputs={"iml_file": "%{name}.iml", "iml_gen_debug_log": "iml_gen_debug.log"},
+    outputs={
+        "iml_file": "%{name}.iml",
+        "iml_gen_debug_log": "iml_gen_debug.log",
+        "iml_module_installer_script_file": "install_%{name}_intellij_iml_module.sh"
+    },
 )

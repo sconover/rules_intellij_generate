@@ -9,16 +9,29 @@ if [ ! -d "{{dot_idea_project_dir}}" ]; then
   mkdir "{{dot_idea_project_dir}}"
 fi
 
+{{modules_xml_installer}} "$1"
+
 original_path=$(pwd)
 trap "{ cd ${original_path}; }" EXIT
 
 cd "{{dot_idea_project_dir}}"
 
-$original_path/{{modules_xml_installer}} "$1"
-
 if [ "NONE" != "{{compiler_xml_installer}}" ]; then
     $original_path/{{compiler_xml_installer}} "$1"
 fi
+
+# This is arguably a hack, and makes this rule unduly Git-centric,
+# but it makes make git vcs support work for now. Generalize and make
+# this better when needed.
+path_to_git_root=$(realpath --relative-to=.. $(git rev-parse --show-toplevel))
+cat << EOF > vcs.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="\$PROJECT_DIR\$/$path_to_git_root" vcs="Git" />
+  </component>
+</project>
+EOF
 
 trap - EXIT
 

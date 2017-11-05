@@ -18,12 +18,6 @@ import static java.lang.String.format;
 
 public class Main {
   @Parameter(
-    names = {"--content-root"},
-    description = "Path, typically relative to the iml's MODULE_DIR. Intellij will " +
-      "present files under this directory as the module's apparent contents.")
-  private String contentRoot = null;
-
-  @Parameter(
     names = {"--sources-root"},
     description = "Directories under the content root that should be marked as source roots, " +
       "coloring the folder blue, and making Intellij treat appropriately-named files under that root as code, " +
@@ -101,13 +95,8 @@ public class Main {
     try {
       String execRootPath = getExecRootPathInAnExtremelyEvilWayDoNotReleaseBeforeCheckingWithBazelTeam();
 
-      Path pathOfImlDir = Paths.get(new File(imlPath).getParent()).toAbsolutePath();
-      Path pathOfContentRoot = Paths.get(contentRoot).toAbsolutePath();
-      Path pathFromModuleDirToContentRoot = pathOfImlDir.relativize(pathOfContentRoot);
-
       String imlContent =
         makeImlContent(
-          pathFromModuleDirToContentRoot.toString(),
           productionOutputDir,
           testOutputDir,
           generatedSourcesDir,
@@ -127,7 +116,6 @@ public class Main {
   @Override
   public String toString() {
     return "\nCreate IML:\n" +
-      format("  contentRoot=%s", contentRoot) + "\n" +
       format("  sourcesRoots=%s", sourcesRoots) + "\n" +
       format("  testSourcesRoots=%s", testSourcesRoots) + "\n" +
       format("  modulesManifestPath=%s", modulesManifestPath) + "\n" +

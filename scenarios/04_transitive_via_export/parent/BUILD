@@ -28,5 +28,6 @@ load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
     name = "idea_parent_module",
     compile_lib_deps = [":parent_lib"],
+    compile_module_deps = ["//04_transitive_via_export/grandparent:idea_grandparent_module"],
     test_lib_deps = [":parent_tests_lib"],
 )

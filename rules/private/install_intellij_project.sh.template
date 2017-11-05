@@ -1,0 +1,25 @@
+#!/bin/bash -e
+
+if [ ! -f "$(pwd)/WORKSPACE" ]; then
+    echo "This script must be run from the workspace root, please change to that directory and re-run." > /dev/stderr
+    exit 1
+fi
+
+if [ ! -d "{{dot_idea_project_dir}}" ]; then
+  mkdir "{{dot_idea_project_dir}}"
+fi
+
+original_path=$(pwd)
+trap "{ cd ${original_path}; }" EXIT
+
+cd "{{dot_idea_project_dir}}"
+
+$original_path/{{modules_xml_installer}} "$1"
+
+if [ "NONE" != "{{compiler_xml_installer}}" ]; then
+    $original_path/{{compiler_xml_installer}} "$1"
+fi
+
+trap - EXIT
+
+echo "Launch using: idea $(dirname {{dot_idea_project_dir}})"

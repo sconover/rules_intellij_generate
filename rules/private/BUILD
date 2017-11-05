@@ -70,6 +70,8 @@ java_test(
   size="small",
 )
 
+exports_files(["install_intellij_project.sh.template"])
+
 # use the rules developed in this project to also
 # generate intellij files for the project.
 
@@ -84,4 +86,10 @@ load(":intellij_modules_xml.bzl", "intellij_modules_xml")
 intellij_modules_xml(
     name = "idea_rules_private_modules",
     deps = [":idea_rules_private_module"]
+)
+
+load(":intellij_project.bzl", "intellij_project")
+intellij_project(
+  name="rulesproj",
+  intellij_modules_xml=":idea_rules_private_modules",
 )

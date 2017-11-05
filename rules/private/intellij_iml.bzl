@@ -1,4 +1,4 @@
-load(":constants.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR")
+load(":common.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR")
 
 # see https://bazel.build/designs/skylark/declared-providers.html
 iml_info_provider = provider(

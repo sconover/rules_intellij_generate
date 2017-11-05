@@ -1,4 +1,5 @@
 load(":intellij_iml.bzl", "iml_info_provider")
+load(":common.bzl", "install_script_provider")
 
 def _impl(ctx):
     """Based on ctx.attr inputs, invoke the modules.xml-generating executable,
@@ -37,12 +38,12 @@ if [ "$1" = "--force" ]; then
     rm -f modules.xml
 else
     if [ -f modules.xml ]; then
-        echo "Refusing to overwrite $(pwd)/modules.xml" > /dev/stderr
+        echo "Refusing to overwrite '$(pwd)/modules.xml', use --force to override" > /dev/stderr
         exit 0
     fi
 fi
 
-ln -s $(dirname $0)/%s modules.xml
+ln -sf $(dirname $0)/%s modules.xml
 """ % ctx.outputs.modules_xml_file.basename
 
     ctx.actions.write(
@@ -50,6 +51,7 @@ ln -s $(dirname $0)/%s modules.xml
         content=shell_script_content,
         is_executable=True)
 
+    return [install_script_provider(install_script_file=ctx.outputs.modules_xml_installer_script_file)]
 # this just auto-builds an xml based on the set of targets you specify at build time
 # so, should it's just the result of some bazel build invocation (however you want to run that...
 # multiple modules etc)
@@ -69,6 +71,6 @@ intellij_modules_xml = rule(
 
     outputs={
         "modules_xml_file": "%{name}_modules.xml",
-        "modules_xml_installer_script_file": "install_%{name}_modules_xml.sh",
+        "modules_xml_installer_script_file": "install_%{name}_intellij_modules_xml.sh",
     },
 )

@@ -54,12 +54,6 @@ public class S02OneClassAndOneTest {
     // has standard junit 5 test jar dependencies
     assertEquals(asList(
       "external/org_junit_jupiter_junit_jupiter_api/jar/junit-jupiter-api-5.0.1.jar!/",
-      "external/org_junit_jupiter_junit_jupiter_engine/jar/junit-jupiter-engine-5.0.1.jar!/",
-      "external/org_junit_platform_junit_platform_commons/jar/junit-platform-commons-1.0.1.jar!/",
-      "external/org_junit_platform_junit_platform_console/jar/junit-platform-console-1.0.1.jar!/",
-      "external/org_junit_platform_junit_platform_engine/jar/junit-platform-engine-1.0.1.jar!/",
-      "external/org_junit_platform_junit_platform_launcher/jar/junit-platform-launcher-1.0.1.jar!/",
-      "external/org_junit_platform_junit_platform_runner/jar/junit-platform-runner-1.0.1.jar!/",
       "external/org_opentest4j_opentest4j/jar/opentest4j-1.0.0.jar!/"),
       removeWorkingDirectory(
         xpathList(imlContent, "/module/component/orderEntry[@type='module-library' and @scope='TEST']/library/CLASSES/root/@url")));

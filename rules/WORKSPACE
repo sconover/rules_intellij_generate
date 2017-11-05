@@ -1,14 +1,11 @@
 workspace(name="rules_intellij_generate")
 
-# junit 5
-maven_jar(name="org_junit_jupiter_junit_jupiter_api",         artifact="org.junit.jupiter:junit-jupiter-api:5.0.1")
-maven_jar(name="org_junit_jupiter_junit_jupiter_engine",      artifact="org.junit.jupiter:junit-jupiter-engine:5.0.1")
-maven_jar(name="org_junit_platform_junit_platform_commons",   artifact="org.junit.platform:junit-platform-commons:1.0.1")
-maven_jar(name="org_junit_platform_junit_platform_console",   artifact="org.junit.platform:junit-platform-console:1.0.1")
-maven_jar(name="org_junit_platform_junit_platform_engine",    artifact="org.junit.platform:junit-platform-engine:1.0.1")
-maven_jar(name="org_junit_platform_junit_platform_launcher",  artifact="org.junit.platform:junit-platform-launcher:1.0.1")
-maven_jar(name="org_junit_platform_junit_platform_runner",    artifact="org.junit.platform:junit-platform-runner:1.0.1")
-maven_jar(name="org_opentest4j_opentest4j",                   artifact="org.opentest4j:opentest4j:1.0.0")
-
 load("//:def.bzl", "repositories_for_intellij_generate")
 repositories_for_intellij_generate()
+
+local_repository(
+    name = "rules_junit5",
+    path = "../rules_junit5",
+)
+load("@rules_junit5//:def.bzl", "junit5_repositories")
+junit5_repositories()

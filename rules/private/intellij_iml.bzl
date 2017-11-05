@@ -148,7 +148,6 @@ def _impl(ctx):
         for dep in (iml_module[iml_info_provider].compile_lib_deps + iml_module[iml_info_provider].transitive_compile_lib_deps):
             for local_file in dep.files.to_list():
                 if local_file.path not in artifact_paths_based_on_visible_source_files:
-                    print(local_file.path)
                     artifact_paths_based_on_visible_source_files.append(local_file.path)
 
     module_manifest_file = _prepare_module_manifest_file(ctx, {"COMPILE": ctx.attr.compile_module_deps}, "modules.manifest", debug_log_lines)

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package fortune;
+
+message GetFortuneRequest {
+  int32 fortune_number = 1;
+}
+
+message GetFortuneResponse {
+  string fortune_content = 1;
+}
+
+service FortuneService {
+  rpc GetFortune (GetFortuneRequest) returns (GetFortuneResponse) {}
+}

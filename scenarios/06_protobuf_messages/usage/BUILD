@@ -6,6 +6,7 @@ java_library(
     deps = [
       "//06_protobuf_messages/plain_email:proto_java",
       "//06_protobuf_messages/html_email:proto_java",
+      "@com_google_protobuf_java//:protobuf_java",
     ],
 )
 
@@ -17,6 +18,7 @@ java_library(
       "//06_protobuf_messages/plain_email:proto_java",
       "//06_protobuf_messages/html_email:proto_java",
 
+      "@com_google_protobuf_java//:protobuf_java",
       "@org_junit_jupiter_junit_jupiter_api//jar",
       "@org_opentest4j_opentest4j//jar",
     ],

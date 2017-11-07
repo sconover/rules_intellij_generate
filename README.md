@@ -1,11 +1,6 @@
 Use Intellij in "classic mode". Core intellij project files are generated via your bazel build.
 
-Inspired by `pants idea`.
-
-dotfile in, intellij config out
-...plus facilities for adding other intellij prefs.
-
-...room for two approaches (plugin-centric, vanilla-idea-centric(-plus?))
+Inspired by [pants idea](https://github.com/pantsbuild/pants/blob/d30cca1e0ecb9cc0e1b7e2cd0ff6e7e077e62a52/src/python/pants/backend/project_info/tasks/idea_gen.py)
 
 Primary Goals:
 - plugin-less intellij development
@@ -13,27 +8,4 @@ Primary Goals:
 - assume a typical maven/gradle-ish directory layout
   - src/main/java, src/main/test
   - relatively coarse-grained modules
-- primary input is a dependency graph (dotfile), output is iml's
-- allow for generating a subset of iml's, like pants idea
-- testing strategy:
-  - mini-projects in this repo - real bazel project and real intellij projects - express the expected-actual / want-got
-  - perhaps some similar idea for testing java / javac output
-
-Secondary goals:
-- If possible, re-use classfiles that are a result of bazel javac's
-- If possible, prevent unnecessary intellij re-indexing when switching branches
-
-Implementation:
-- java: simple, focused, few-dependency (stdlib + jcommander), well-unit-tested Main classes for making intellij stuff
-- however, dotfile-to-iml should be pure-python and (ideally) independent of bazel depenendencies.
-
-Review:
-- run it by zundel, cheister, et al
-
-Docs:
-- Some short statement of the problem, then (very briefly!) the philosophy of these rules
-- List trade-offs of this approach vs use of a plugin.
-  - And, even, demonstrate both in example projects
-
-TODO:
-- license statements
+- testing: various real-ish scenarios are present in this project, and usable.

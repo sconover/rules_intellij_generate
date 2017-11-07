@@ -22,11 +22,11 @@ public class S01OneClassTest {
   public void source_folders() {
     // this scenario has one source file, in a non-maven-standard layout
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../../../01_one_class/./out/production/generated",
-      "file://$MODULE_DIR$/../../../../01_one_class/./out/test/generated_tests",
-      "file://$MODULE_DIR$/../../../../01_one_class/./src",
-      "file://$MODULE_DIR$/../../../../01_one_class/./src/main/resources",
-      "file://$MODULE_DIR$/../../../../01_one_class/./src/test/resources"),
+      "file://$MODULE_DIR$/out/production/generated",
+      "file://$MODULE_DIR$/out/test/generated_tests",
+      "file://$MODULE_DIR$/src",
+      "file://$MODULE_DIR$/src/main/resources",
+      "file://$MODULE_DIR$/src/test/resources"),
       xpathList(imlContent, "/module/component/content/sourceFolder/@url"));
 
     assertEquals(
@@ -36,10 +36,10 @@ public class S01OneClassTest {
 
   @Test
   public void output_folders() {
-    assertEquals("file://$MODULE_DIR$/../../../../01_one_class/./out/production",
+    assertEquals("file://$MODULE_DIR$/out/production",
       xpath(imlContent, "/module/component/output/@url"));
 
-    assertEquals("file://$MODULE_DIR$/../../../../01_one_class/./out/test",
+    assertEquals("file://$MODULE_DIR$/out/test",
       xpath(imlContent, "/module/component/output-test/@url"));
   }
 

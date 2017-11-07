@@ -59,7 +59,10 @@ junit5_all_in_package_test(
     ]
 )
 
-exports_files(["install_intellij_project.sh.template"])
+exports_files([
+    "install_intellij_project.sh.template",
+    "install_intellij_iml.sh.template",
+])
 
 # use the rules developed in this project to also
 # generate intellij files for the project.

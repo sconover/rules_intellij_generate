@@ -14,7 +14,6 @@ import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ImlContentTest {
-  private String pathFromModuleDirToContentRoot;
   private String productionOutputDirRelativeToModuleRoot;
   private String testOutputDirRelativeToModuleRoot;
   private String generatedSourcesDirRelativeToProductionOutputDir;
@@ -27,7 +26,6 @@ public class ImlContentTest {
 
   @BeforeEach
   public void beforeEach() {
-    pathFromModuleDirToContentRoot = "../../this-is-the-content-dir_default";
     productionOutputDirRelativeToModuleRoot = "default_test/output/dir";
     testOutputDirRelativeToModuleRoot = "default_production/output/dir";
     generatedSourcesDirRelativeToProductionOutputDir = "default_generated_sources_subdir";
@@ -41,7 +39,6 @@ public class ImlContentTest {
 
   private String makeImlContentForTest() {
     return makeImlContent(
-      pathFromModuleDirToContentRoot,
       productionOutputDirRelativeToModuleRoot,
       testOutputDirRelativeToModuleRoot,
       generatedSourcesDirRelativeToProductionOutputDir,
@@ -60,33 +57,31 @@ public class ImlContentTest {
     String imlContent = makeImlContentForTest();
 
     assertEquals(
-      "file://$MODULE_DIR$/../../this-is-the-content-dir_default/production/output/dir",
+      "file://$MODULE_DIR$/production/output/dir",
       xpath(imlContent, "/module/component/output/@url"));
 
     assertEquals(
-      "file://$MODULE_DIR$/../../this-is-the-content-dir_default/test/output/dir",
+      "file://$MODULE_DIR$/test/output/dir",
       xpath(imlContent, "/module/component/output-test/@url"));
   }
 
   @Test
   public void makes_content_root() {
-    pathFromModuleDirToContentRoot = "../../this-is-the-content-dir";
     String imlContent = makeImlContentForTest();
 
     assertEquals(
-      "file://$MODULE_DIR$/../../this-is-the-content-dir",
+      "file://$MODULE_DIR$",
       xpath(imlContent, "/module/component/content/@url"));
   }
 
   @Test
   public void makes_sources_roots_within_content_root() {
-    pathFromModuleDirToContentRoot = "../../this-is-the-content-dir";
     sourcesRoots = asList("foosrc/main/java", "barsrc/main/java");
     String imlContent = makeImlContentForTest();
 
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../this-is-the-content-dir/foosrc/main/java",
-      "file://$MODULE_DIR$/../../this-is-the-content-dir/barsrc/main/java"),
+      "file://$MODULE_DIR$/foosrc/main/java",
+      "file://$MODULE_DIR$/barsrc/main/java"),
       xpathList(imlContent, "/module/component/content/sourceFolder[not(@generated)]/@url"));
 
     assertEquals(
@@ -96,13 +91,12 @@ public class ImlContentTest {
 
   @Test
   public void makes_test_roots_within_content_root() {
-    pathFromModuleDirToContentRoot = "../../this-is-the-content-dir";
     testSourcesRoots = asList("foosrc/test/java", "barsrc/test/java");
     String imlContent = makeImlContentForTest();
 
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../this-is-the-content-dir/foosrc/test/java",
-      "file://$MODULE_DIR$/../../this-is-the-content-dir/barsrc/test/java"),
+      "file://$MODULE_DIR$/foosrc/test/java",
+      "file://$MODULE_DIR$/barsrc/test/java"),
       xpathList(imlContent, "/module/component/content/sourceFolder[not(@generated)]/@url"));
 
     assertEquals(
@@ -112,27 +106,26 @@ public class ImlContentTest {
 
   @Test
   public void makes_resources_roots_within_content_root() {
-    pathFromModuleDirToContentRoot = "../../this-is-the-content-dir";
     resourcesRoots = asList("foosrc/main/resources", "barsrc/test/resources");
     String imlContent = makeImlContentForTest();
 
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../this-is-the-content-dir/foosrc/main/resources",
-      "file://$MODULE_DIR$/../../this-is-the-content-dir/barsrc/test/resources"),
+      "file://$MODULE_DIR$/foosrc/main/resources",
+      "file://$MODULE_DIR$/barsrc/test/resources"),
       xpathList(imlContent, "/module/component/content/sourceFolder[@type='java-resource']/@url"));
   }
 
   @Test
   public void make_generated_source_folders_within_content_root() {
-    productionOutputDirRelativeToModuleRoot = "production/output/dir";
+    productionOutputDirRelativeToModuleRoot = "production/output/dir"; // Now ignored, delete me.
     testOutputDirRelativeToModuleRoot = "test/output/dir";
     generatedSourcesDirRelativeToProductionOutputDir = "generated_sources_subdir";
     generatedTestSourcesDirRelativeToTestOutputDir = "generated_test_sources_subdir";
     String imlContent = makeImlContentForTest();
 
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../this-is-the-content-dir_default/production/output/dir/generated_sources_subdir",
-      "file://$MODULE_DIR$/../../this-is-the-content-dir_default/test/output/dir/generated_test_sources_subdir"),
+      "file://$MODULE_DIR$/production/output/dir/generated_sources_subdir",
+      "file://$MODULE_DIR$/test/output/dir/generated_test_sources_subdir"),
       xpathList(imlContent, "/module/component/content/sourceFolder[@generated='true']/@url"));
 
     assertEquals(

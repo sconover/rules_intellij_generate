@@ -43,7 +43,7 @@ public class TestUtil {
   }
 
   public static String loadBazelGeneratedFile(String pathRelativeToBazelBin) {
-    return readFile(format("../%s", pathRelativeToBazelBin));
+    return readFile(format("../bazel-bin/%s", pathRelativeToBazelBin));
   }
 
   public static String readFile(String pathStr) {

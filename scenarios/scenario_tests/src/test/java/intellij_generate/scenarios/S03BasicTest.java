@@ -35,12 +35,12 @@ public class S03BasicTest {
   public void source_folders_sample() {
     // this scenario has one source file, in a non-maven-standard layout
     assertEquals(asList(
-      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./out/production/generated",
-      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./out/test/generated_tests",
-      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/main/java",
-      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/test/java",
-      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/main/resources",
-      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/test/resources"),
+      "file://$MODULE_DIR$/out/production/generated",
+      "file://$MODULE_DIR$/out/test/generated_tests",
+      "file://$MODULE_DIR$/src/main/java",
+      "file://$MODULE_DIR$/src/test/java",
+      "file://$MODULE_DIR$/src/main/resources",
+      "file://$MODULE_DIR$/src/test/resources"),
       xpathList(dolphinImlContent, "/module/component/content/sourceFolder/@url"));
 
     assertEquals(

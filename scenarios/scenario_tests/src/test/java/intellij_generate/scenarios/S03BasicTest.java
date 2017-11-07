@@ -38,7 +38,9 @@ public class S03BasicTest {
       "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./out/production/generated",
       "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./out/test/generated_tests",
       "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/main/java",
-      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/test/java"),
+      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/test/java",
+      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/main/resources",
+      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/test/resources"),
       xpathList(dolphinImlContent, "/module/component/content/sourceFolder/@url"));
 
     assertEquals(

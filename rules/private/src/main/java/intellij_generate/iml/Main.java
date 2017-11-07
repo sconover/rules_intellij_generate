@@ -38,6 +38,11 @@ public class Main {
   private List<String> testSourcesRoots = new ArrayList<>();
 
   @Parameter(
+    names = {"--resources-root"},
+    description = "Java resource directory roots.")
+  private List<String> resourcesRoots = new ArrayList<>();
+
+  @Parameter(
     names = {"--libraries-manifest-path"},
     description = "A file in three columns: " +
       "column 1 is the library label, " +
@@ -109,6 +114,7 @@ public class Main {
           generatedTestSourcesDir,
           sourcesRoots,
           testSourcesRoots,
+          resourcesRoots,
           loadModuleEntriesFromManifestFile(modulesManifestPath),
           loadLibraryEntriesFromManifestFile(execRootPath, librariesManifestPath));
 

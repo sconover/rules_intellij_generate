@@ -26,7 +26,9 @@ public class S02OneClassAndOneTest {
       "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./out/production/generated",
       "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./out/test/generated_tests",
       "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./src",
-      "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./test"),
+      "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./test",
+      "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./src/main/resources",
+      "file://$MODULE_DIR$/../../../../02_one_class_and_one_test/./src/test/resources"),
       xpathList(imlContent, "/module/component/content/sourceFolder/@url"));
 
     assertEquals(

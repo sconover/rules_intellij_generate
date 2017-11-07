@@ -20,6 +20,7 @@ class ImlContent {
     String generatedTestSourcesDirRelativeToTestOutputDir,
     List<String> sourcesRoots,
     List<String> testSourcesRoots,
+    List<String> resourcesRoots,
     List<ModuleDependencyEntry> moduleEntries,
     List<JarDependencyEntry> libraryEntries) {
     checkIsNotBlank(pathFromModuleDirToContentRoot, "pathFromModuleDirToContentRoot");
@@ -62,6 +63,11 @@ class ImlContent {
     testSourcesRoots.forEach(testSourcesRoot ->
       lines.add(format("      <sourceFolder url=\"%s\" isTestSource=\"true\" />",
         "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, testSourcesRoot))));
+
+    resourcesRoots.forEach(resourcesRoot ->
+      lines.add(
+        format("      <sourceFolder url=\"%s\" type=\"java-resource\" />",
+          "file://" + fileJoin(pathFromModuleDirToContentRootWithIntellijVariable, resourcesRoot))));
 
     lines.add("    </content>");
 

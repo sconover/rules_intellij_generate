@@ -93,6 +93,11 @@ def _impl(ctx):
         test_sources_roots_args.append("--test-sources-root")
         test_sources_roots_args.append(test_sources_root_attr)
 
+    resources_roots_args = []
+    for resources_root_attr in ctx.attr.resources_roots:
+        resources_roots_args.append("--resources-root")
+        resources_roots_args.append(resources_root_attr)
+
     module_manifest_file = _prepare_module_manifest_file(ctx, {"COMPILE": ctx.attr.compile_module_deps}, "modules.manifest", debug_log_lines)
 
     library_manifest_file = _prepare_library_manifest_file_from_java_runtime_classpath_info(
@@ -110,7 +115,8 @@ def _impl(ctx):
             "--generated-sources-dir", GENERATED_SOURCES_SUBDIR,
             "--generated-test-sources-dir", GENERATED_TEST_SOURCES_SUBDIR] + # consider making this overridable via a ctx.attr
             sources_roots_args +
-            test_sources_roots_args + [
+            test_sources_roots_args +
+            resources_roots_args + [
             "--modules-manifest-path", module_manifest_file.path,
             "--libraries-manifest-path", library_manifest_file.path,
             "--iml-path", ctx.outputs.iml_file.path,
@@ -196,6 +202,10 @@ intellij_iml = rule(
         "test_sources_roots": attr.string_list(
             default=["src/test/java"],
             doc="Intellij will mark each of these directories as a 'Test Sources Root'"),
+
+        "resources_roots": attr.string_list(
+            default=["src/main/resources", "src/test/resources"],
+            doc="Intellij will mark each of these directories as a 'Resources Root'"),
 
         "production_output_dir": attr.string(
             default="out/production",

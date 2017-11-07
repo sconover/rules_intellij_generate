@@ -1,4 +1,4 @@
-load(":constants.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR")
+load(":common.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR", "install_script_provider")
 load(":intellij_iml.bzl", "iml_info_provider") # see https://bazel.build/designs/skylark/declared-providers.html
 
 def _impl(ctx):
@@ -44,12 +44,12 @@ if [ "$1" = "--force" ]; then
     rm -f compiler.xml
 else
     if [ -f compiler.xml ]; then
-        echo "Refusing to overwrite $(pwd)/compiler.xml" > /dev/stderr
+        echo "Refusing to overwrite '$(pwd)/compiler.xml', use --force to override" > /dev/stderr
         exit 0
     fi
 fi
 
-ln -s $(dirname $0)/%s compiler.xml
+ln -sf $(dirname $0)/%s compiler.xml
 """ % ctx.outputs.compiler_xml_file.basename
 
     ctx.actions.write(
@@ -57,6 +57,7 @@ ln -s $(dirname $0)/%s compiler.xml
         content=shell_script_content,
         is_executable=True)
 
+    return [install_script_provider(install_script_file=ctx.outputs.compiler_xml_installer_script_file)]
 
 intellij_compiler_xml = rule(
     doc="""Given a mapping of iml module targets to profile names, generate an intellij compiler.xml file.
@@ -86,6 +87,6 @@ intellij_compiler_xml = rule(
 
     outputs={
         "compiler_xml_file": "%{name}_compiler.xml",
-        "compiler_xml_installer_script_file": "install_%{name}_compiler_xml.sh",
+        "compiler_xml_installer_script_file": "install_%{name}_intellij_compiler_xml.sh",
     },
 )

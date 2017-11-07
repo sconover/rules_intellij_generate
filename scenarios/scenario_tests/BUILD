@@ -1,4 +1,4 @@
-package(default_visibility = ["//src:__subpackages__"])
+package(default_visibility = ["//:__subpackages__"])
 
 # these tests assert on iml and other build output, and therefore should really
 # have some dependency on those things so that this doesn't execute out of order.
@@ -44,6 +44,12 @@ intellij_iml(
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "idea_project",
+    name = "scenariotestsmodules",
     deps = [":idea_root_module"]
+)
+
+load("@rules_intellij_generate//:def.bzl", "intellij_project")
+intellij_project(
+  name="scenariotestsproj",
+  intellij_modules_xml=":scenariotestsmodules",
 )

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package html_email;
+
+// see https://github.com/bazelbuild/bazel/issues/2039#issuecomment-258896609
+// "Protobuf import statements must be fully qualified, relative to the current
+//  workspace (I believe), and relative to the importer workspace this is the
+//  path to the importee."
+import "06_protobuf_messages/plain_email/src/main/proto/plain_email.proto";
+
+message HtmlEmail {
+  plain_email.PlainEmail plain_email = 1;
+  string body_html = 2;
+}

@@ -1,3 +1,4 @@
 bazel-*
 out/
 .idea/
+.DS_Store

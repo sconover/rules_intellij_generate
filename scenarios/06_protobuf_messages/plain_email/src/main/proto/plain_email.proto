@@ -1,0 +1,13 @@
+syntax = "proto3";
+package plain_email;
+
+message Identity {
+  string name = 1;
+  string email = 2;
+}
+
+message PlainEmail {
+  Identity from = 1;
+  Identity to = 2;
+  string body_text = 3;
+}

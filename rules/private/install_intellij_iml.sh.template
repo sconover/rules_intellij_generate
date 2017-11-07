@@ -8,7 +8,8 @@ fi
 this_dir=$(dirname $0)
 original_path=$(pwd)
 module_dir=$(dirname {{iml_path_relative_to_workspace_root}})
-iml_file_name=$(basename {{iml_path_relative_to_workspace_root}})
+source_iml_file_name={{source_iml_file_name}}
+dest_iml_file_name={{dest_iml_file_name}}
 trap "{ cd ${original_path}; }" EXIT
 
 cd $module_dir
@@ -22,6 +23,6 @@ else
     fi
 fi
 
-ln -sf $original_path/$this_dir/$iml_file_name $iml_file_name
+ln -sf $original_path/$this_dir/$source_iml_file_name $dest_iml_file_name
 
 trap - EXIT

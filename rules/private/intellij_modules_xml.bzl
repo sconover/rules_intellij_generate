@@ -1,6 +1,6 @@
 load(":intellij_iml.bzl", "iml_info_provider")
 load(":common.bzl", "install_script_provider", "path_relative_to_workspace_root",
-    "dot_idea_project_dir_relative_to_workspace_root", "project_dir_relative_to_workspace_root")
+    "dot_idea_project_dir_relative_to_workspace_root", "dir_relative_to_workspace_root")
 
 def _impl(ctx):
     """Based on ctx.attr inputs, invoke the modules.xml-generating executable,
@@ -11,7 +11,7 @@ def _impl(ctx):
         iml_paths_relative_to_workspace_root.append(dep[iml_info_provider].iml_path_relative_to_workspace_root)
         iml_paths_relative_to_workspace_root.extend(dep[iml_info_provider].transitive_iml_paths_relative_to_workspace_root)
 
-    idea_project_dir = project_dir_relative_to_workspace_root(ctx)
+    idea_project_dir = dir_relative_to_workspace_root(ctx)
     iml_path_args = []
     for p in iml_paths_relative_to_workspace_root:
         # use replace, not lstrip - lstrip is over-aggressive, and appears to have a bug (and as of this writing, the lstrip example also has a bug)
@@ -22,8 +22,6 @@ def _impl(ctx):
     for dep in ctx.attr.deps:
         iml_installer_script_files.append(dep[install_script_provider].install_script_file)
         iml_installer_script_files.extend(dep[install_script_provider].transitive_install_script_files)
-
-    print(iml_path_args)
 
     ctx.action(
         executable=ctx.executable._intellij_generate_modules_xml,

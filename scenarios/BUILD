@@ -7,6 +7,8 @@ intellij_project_group(
     "//03_basic:03proj",
     "//04_transitive_via_export:04proj",
     "//05_annotation_processor:05proj",
+    "//06_protobuf_messages:06proj",
+    "//07_grpc:07proj",
     "//scenario_tests:scenariotestsproj",
   ],
 )

@@ -25,7 +25,7 @@ java_library(
 load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 junit5_all_in_package_test(
     name="usage_tests",
-    java_package="annotation_processor.usage",
+    java_package="protobuf_messages.usage",
     runtime_deps=[":usage_tests_lib"]
 )
 

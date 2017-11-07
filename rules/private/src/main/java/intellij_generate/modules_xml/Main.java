@@ -45,7 +45,6 @@ public class Main {
           .collect(toList())));
   }
 
-
   @Override
   public String toString() {
     return "Make an intellij modules.xml file:\n" +

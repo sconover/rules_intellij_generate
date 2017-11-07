@@ -1,5 +1,24 @@
 load(":constants.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR")
 
+# see https://bazel.build/designs/skylark/declared-providers.html
+iml_info_provider = provider(
+  doc = """The struct returned as the result of intellij_iml execution.
+           Primarily allows "child" modules to get information about
+           their "parent" modules, such as what the full set of immediate
+           and transitive iml module parents is, and the libs those parents
+           depend on.
+        """,
+  fields = {
+    "compile_lib_deps": "This iml module's complie library dependencies.",
+    "transitive_compile_lib_deps": "All complie library dependencies of all parent iml modules, of this iml module.",
+
+    "iml_module_name": "This iml module's name.",
+    "transitive_iml_module_names": "Names of all parent iml modules, of this iml module.",
+
+    "iml_module_file": "This iml module's file.",
+    "transitive_iml_module_files": "Files of all parent iml modules, of this iml module.",
+  })
+
 def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_to_java_deps, manifest_file_name, debug_log_lines):
     """Given a bazel rule ctx, a list of java dependency labels,
        find all java jar libraries for the dependencies,
@@ -44,40 +63,34 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_t
     return library_manifest_file
 
 def _prepare_module_manifest_file(ctx, scope_to_idea_module_deps, manifest_file_name, debug_log_lines):
-    """TODO"""
+    """Given a mapping of scope (COMPILE/TEST) to idea iml targets,
+       find all .iml files that those targets have,
+       and make a manifest file with two columns:
+       column 1: the idea module name
+         (idea module names are returned from the intellij_iml rule,
+          by way of the iml_info_provider struct)
+       column 2: the scope (e.g. COMPILE)
+       """
     debug_log_lines.append("prepare module manifest file: '%s'" % manifest_file_name)
     module_manifest_content = ""
     for scope in scope_to_idea_module_deps.keys():
         debug_log_lines.append("  process scope: '%s'" % scope)
         for dep in scope_to_idea_module_deps[scope]:
             debug_log_lines.append("    process dependency: '%s'" % dep.label)
-            # intellij rule: module name is always the name of the iml file.
-            # use iml file list to build module name list
-            #
-            # Note: this makes use of the provider runfiles we return from the intellij_iml rule impl
-            for f in dep[DefaultInfo].default_runfiles.files.to_list():
-                if f.basename.endswith(".iml"):
-                    debug_log_lines.append("      including .iml runfile: '%s'" % f.basename)
-                    intellij_module_name = f.basename.rstrip(".iml")
-                    module_manifest_content += "%s %s\n" % (intellij_module_name, scope)
-                else:
-                    debug_log_lines.append("      not including runfile (that does not have .iml extension): '%s'" % f.basename)
+
+            all_iml_modules = dep[iml_info_provider].transitive_iml_module_names + [dep[iml_info_provider].iml_module_name]
+            for iml_module_name in all_iml_modules:
+                debug_log_lines.append("      including iml module: '%s'" % iml_module_name)
+                module_manifest_content += "%s %s\n" % (iml_module_name, scope)
 
     module_manifest_file = ctx.actions.declare_file(manifest_file_name)
     ctx.actions.write(output=module_manifest_file, content=module_manifest_content)
     debug_log_lines.append("  wrote %d bytes to '%s'" % (len(module_manifest_content), module_manifest_file.path))
     return module_manifest_file
 
-# see https://bazel.build/designs/skylark/declared-providers.html
-iml_info_provider = provider(
-  doc = "TODO",
-  fields = {
-    "compile_lib_deps": "TODO",
-    "transitive_compile_lib_deps": "TODO",
-  })
-
 def _impl(ctx):
-    """Based on ctx.attr inputs, invoke the iml-generating executable, and write the result to the designated iml path."""
+    """Based on ctx.attr inputs, invoke the iml-generating executable,
+       and write the result to the designated iml path."""
     debug_log_lines = []
     debug_log_lines.append("START IML")
     debug_log_lines.append("ctx output iml_file: '%s'" % ctx.outputs.iml_file.path)
@@ -106,6 +119,7 @@ def _impl(ctx):
         "libraries.manifest",
         debug_log_lines)
 
+    # kwargs broken out from invocation site, for auditing purposes.
     kwargs = {
         "executable": ctx.executable._intellij_generate_iml,
         "arguments": [
@@ -141,48 +155,48 @@ def _impl(ctx):
         debug_log_lines.append("     " + o.path)
 
     ctx.action(**kwargs)
-    # prepare all parent (compile-module-dependency) runfiles to be returned.
-    # we will use this list in child modules to build a complete module dependency list, for
-    # those iml's.
-    parent_iml_files = []
-    for dep in ctx.attr.compile_module_deps:
-        parent_iml_files += dep[DefaultInfo].default_runfiles.files.to_list()
 
-    # see: https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
-    # also make sure to read about providers: https://docs.bazel.build/versions/master/skylark/rules.html#providers
-    return_runfiles = parent_iml_files + [ctx.outputs.iml_file]
-    debug_log_lines.append("Returning runfiles:")
-    for f in return_runfiles:
-        debug_log_lines.append("  " + f.path)
-    runfiles = ctx.runfiles(
-        # Add some files manually.
-        files = return_runfiles,
-        # Collect runfiles from the common locations: transitively from srcs,
-        # deps and data attributes.
-        collect_default = True,
-    )
+    debug_log_lines.append("FINISHED IML")
+    ctx.actions.write(output=ctx.outputs.iml_gen_debug_log, content="\n".join(debug_log_lines) + "\n")
+
+
+    # == prepare and return iml_info_provider result ==
 
     transitive_compile_lib_deps = []
     for dep in ctx.attr.compile_module_deps:
         transitive_compile_lib_deps += dep[iml_info_provider].compile_lib_deps
         transitive_compile_lib_deps += dep[iml_info_provider].transitive_compile_lib_deps
 
-    debug_log_lines.append("FINISHED IML")
-    ctx.actions.write(output=ctx.outputs.iml_gen_debug_log, content="\n".join(debug_log_lines) + "\n")
+    transitive_iml_module_names = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_iml_module_names += [dep[iml_info_provider].iml_module_name]
+        transitive_iml_module_names += dep[iml_info_provider].transitive_iml_module_names
+
+    transitive_iml_module_files = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_iml_module_files += [dep[iml_info_provider].iml_module_file]
+        transitive_iml_module_files += dep[iml_info_provider].transitive_iml_module_files
 
     return [
-        DefaultInfo(runfiles=runfiles),
         iml_info_provider(
             compile_lib_deps=ctx.attr.compile_lib_deps,
             transitive_compile_lib_deps=transitive_compile_lib_deps,
+
+            iml_module_name=ctx.attr.name,
+            transitive_iml_module_names=transitive_iml_module_names,
+
+            iml_module_file=ctx.outputs.iml_file,
+            transitive_iml_module_files=transitive_iml_module_files,
         )]
 
 intellij_iml = rule(
     doc="""Generate an intellij iml file, containing:
             - module library entries that point to jar and module dependencies, as known by bazel
-            - (user-specified) source and test roots, that default to the standard maven project layout
-            (see: https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html)
-            (TODO: document further)
+            - (user-specified) source, test and resource roots, that default to the standard maven project layout
+              (see: https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html)
+            - production and test output directories, that default to the intellij locations, and also
+              contain generated-source subdirectories, that are marked as source roots (naming of these is
+              fixed for reasons stated in constants.bzl)
         """,
     implementation=_impl,
 

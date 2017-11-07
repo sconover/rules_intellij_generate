@@ -4,8 +4,6 @@ load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
     name = "idea_project",
     deps = [
-      "//05_annotation_processor/class_generator:idea_class_generator_module",
-      "//05_annotation_processor/text_file_generator:idea_text_file_generator_module",
       "//05_annotation_processor/usage:idea_usage_module",
     ]
 )

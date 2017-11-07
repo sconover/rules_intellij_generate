@@ -16,6 +16,8 @@ public class CompilerXmlContent {
     Map<String, String> moduleNameToProfileName,
     Map<String, List<String>> moduleNameToAnnotationProcessors) {
 
+    // transform the iml-module-centric inputs to
+    // intellij annotation processor profile-centric structures
     Map<String, List<String>> profileNameToModuleNames = new LinkedHashMap<>();
     Map<String, List<String>> profileNameToAnnotationProcessors = new LinkedHashMap<>();
     moduleNameToProfileName.forEach((moduleName, profileName) -> {
@@ -39,6 +41,9 @@ public class CompilerXmlContent {
       });
     });
 
+
+    // using the profile structures, create compiler.xml content.
+
     List<String> lines = new ArrayList<>();
     lines.add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     lines.add("<project version=\"4\">");
@@ -55,7 +60,6 @@ public class CompilerXmlContent {
 
       moduleNames.forEach(moduleName -> lines.add(format("        <module name=\"%s\" />", moduleName)));
 
-      // use default processor path...dunno if this is a good idea or not, but that's what we're doing for now
       lines.add("      </profile>");
     });
 

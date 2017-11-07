@@ -18,12 +18,12 @@ public class Main {
   @Parameter(
     names = {"--generated-sources-subdir"},
     description = "Subdirectory where generated sources from annotation processors will go.")
-  private String generatedSourcesSubdir;
+  private String generatedSourcesSubdir = null;
 
   @Parameter(
     names = {"--generated-test-sources-subdir"},
     description = "Subdirectory where generated test sources from annotation processors will go.")
-  private String generatedTestSourcesSubdir;
+  private String generatedTestSourcesSubdir = null;
 
   @Parameter(
     names = {"--module-to-profile-mapping"},
@@ -50,7 +50,7 @@ public class Main {
   }
 
   private void run() {
-    Map<String, String> moduleNameToProfileName = new LinkedHashMap<>(); // retains order
+    Map<String, String> moduleNameToProfileName = new LinkedHashMap<>(); // entries are in insertion order
     moduleNameToProfileNameMappings.forEach(mapping -> {
       String[] parts = mapping.split("=", 2);
       String moduleName = parts[0];
@@ -62,7 +62,7 @@ public class Main {
       moduleNameToProfileName.put(moduleName, profileName);
     });
 
-    Map<String, List<String>> moduleNameToAnnotationProcessors = new LinkedHashMap<>(); // retains order
+    Map<String, List<String>> moduleNameToAnnotationProcessors = new LinkedHashMap<>(); // entries are in insertion order
     moduleNameToAnnotationProcessorNameMappings.forEach(mapping -> {
       String[] parts = mapping.split("=", 2);
       String moduleName = parts[0];
@@ -85,7 +85,6 @@ public class Main {
         moduleNameToProfileName,
         moduleNameToAnnotationProcessors));
   }
-
 
   @Override
   public String toString() {

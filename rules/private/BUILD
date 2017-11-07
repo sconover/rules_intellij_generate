@@ -70,15 +70,6 @@ java_test(
   size="small",
 )
 
-# TODO: consider whether a convenient module method is in order.
-# perhaps: intellij_java_module
-# This would:
-#   accept any number of src roots and dependencies
-#   accept any number of test roots and dependencies
-#   test classpath is test libs + class + src libs + classes
-#   compose an intellij iml
-# Also: make a junit 5 dependency filegroup
-
 # use the rules developed in this project to also
 # generate intellij files for the project.
 

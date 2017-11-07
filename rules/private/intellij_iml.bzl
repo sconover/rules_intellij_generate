@@ -1,3 +1,5 @@
+load(":constants.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR")
+
 def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_to_java_deps, manifest_file_name, debug_log_lines):
     """Given a bazel rule ctx, a list of java dependency labels,
        find all java jar libraries for the dependencies,
@@ -66,6 +68,14 @@ def _prepare_module_manifest_file(ctx, scope_to_idea_module_deps, manifest_file_
     debug_log_lines.append("  wrote %d bytes to '%s'" % (len(module_manifest_content), module_manifest_file.path))
     return module_manifest_file
 
+# see https://bazel.build/designs/skylark/declared-providers.html
+iml_info_provider = provider(
+  doc = "TODO",
+  fields = {
+    "compile_lib_deps": "TODO",
+    "transitive_compile_lib_deps": "TODO",
+  })
+
 def _impl(ctx):
     """Based on ctx.attr inputs, invoke the iml-generating executable, and write the result to the designated iml path."""
     debug_log_lines = []
@@ -94,7 +104,11 @@ def _impl(ctx):
     kwargs = {
         "executable": ctx.executable._intellij_generate_iml,
         "arguments": [
-            "--content-root", ctx.build_file_path.replace("BUILD", ".")] + # consider making this overridable via a ctx.attr
+            "--content-root", ctx.build_file_path.replace("BUILD", "."),
+            "--production-output-dir", ctx.attr.production_output_dir,
+            "--test-output-dir", ctx.attr.test_output_dir,
+            "--generated-sources-dir", GENERATED_SOURCES_SUBDIR,
+            "--generated-test-sources-dir", GENERATED_TEST_SOURCES_SUBDIR] + # consider making this overridable via a ctx.attr
             sources_roots_args +
             test_sources_roots_args + [
             "--modules-manifest-path", module_manifest_file.path,
@@ -142,10 +156,20 @@ def _impl(ctx):
         collect_default = True,
     )
 
+    transitive_compile_lib_deps = []
+    for dep in ctx.attr.compile_module_deps:
+        transitive_compile_lib_deps += dep[iml_info_provider].compile_lib_deps
+        transitive_compile_lib_deps += dep[iml_info_provider].transitive_compile_lib_deps
+
     debug_log_lines.append("FINISHED IML")
     ctx.actions.write(output=ctx.outputs.iml_gen_debug_log, content="\n".join(debug_log_lines) + "\n")
 
-    return [DefaultInfo(runfiles=runfiles)]
+    return [
+        DefaultInfo(runfiles=runfiles),
+        iml_info_provider(
+            compile_lib_deps=ctx.attr.compile_lib_deps,
+            transitive_compile_lib_deps=transitive_compile_lib_deps,
+        )]
 
 intellij_iml = rule(
     doc="""Generate an intellij iml file, containing:
@@ -157,14 +181,28 @@ intellij_iml = rule(
     implementation=_impl,
 
     attrs={
-        "_intellij_generate_iml": attr.label(default=Label("//private:intellij_generate_iml"), executable=True, cfg="target"),
+        "_intellij_generate_iml": attr.label(
+            default=Label("//private:intellij_generate_iml"),
+            executable=True,
+            cfg="target"),
 
         "compile_module_deps": attr.label_list(doc="inteliij_iml targets, which will become COMPILE module dependencies in idea."),
         "compile_lib_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the COMPILE library section of the iml."),
-        "sources_roots": attr.string_list(default=["src/main/java"], doc="Intellij will mark each of these directories as a 'Sources Root'"),
+        "sources_roots": attr.string_list(
+            default=["src/main/java"],
+            doc="Intellij will mark each of these directories as a 'Sources Root'"),
 
         "test_lib_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the TEST library section of the iml."),
-        "test_sources_roots": attr.string_list(default=["src/test/java"], doc="Intellij will mark each of these directories as a 'Test Sources Root'"),
+        "test_sources_roots": attr.string_list(
+            default=["src/test/java"],
+            doc="Intellij will mark each of these directories as a 'Test Sources Root'"),
+
+        "production_output_dir": attr.string(
+            default="out/production",
+            doc="Intellij output directory for production/main classes and resources. Path is relative to the module content root."),
+        "test_output_dir": attr.string(
+            default="out/test",
+            doc="Intellij output directory for test classes and resources. Path is relative to the module content root."),
     },
 
     outputs={"iml_file": "%{name}.iml", "iml_gen_debug_log": "iml_gen_debug.log"},

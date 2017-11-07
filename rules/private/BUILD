@@ -26,6 +26,15 @@ java_binary(
     ]
 )
 
+java_binary(
+    name = "intellij_generate_compiler_xml",
+    main_class = "intellij_generate.compiler_xml.Main",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        ":intellij_generate_lib",
+    ]
+)
+
 # TODO: some bazel+ junit5 magic can probably be done to make the tests run
 # automatically (without explicitly specifying a package), or from a directory or something.
 
@@ -75,13 +84,13 @@ java_test(
 
 load(":intellij_iml.bzl", "intellij_iml")
 intellij_iml(
-    name = "extension_root",
+    name = "idea_rules_private_module",
     compile_lib_deps = [":intellij_generate_lib"],
     test_lib_deps = [":intellij_generate_tests_lib"],
 )
 
 load(":intellij_modules_xml.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "idea",
-    deps = [":extension_root"]
+    name = "idea_rules_private_modules",
+    deps = [":idea_rules_private_module"]
 )

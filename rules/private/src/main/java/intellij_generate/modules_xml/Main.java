@@ -23,7 +23,7 @@ public class Main {
 
   @Parameter(
     names = {"--modules-xml-path"},
-    description = "The goal of this operation is to generate an iml file whose path is indicated by this parameter.")
+    description = "The goal of this operation is to generate a modules.xml file whose path is indicated by this parameter.")
   private String modulesXmlPath = null;
 
   public static void main(String[] args) {

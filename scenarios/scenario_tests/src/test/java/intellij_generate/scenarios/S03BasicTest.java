@@ -3,11 +3,12 @@ package intellij_generate.scenarios;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static intellij_generate.scenarios.TestUtil.loadBazelGeneratedImlFile;
+import static intellij_generate.scenarios.TestUtil.loadBazelGeneratedFile;
 import static intellij_generate.scenarios.TestUtil.removeWorkingDirectory;
 import static intellij_generate.scenarios.TestUtil.xpathList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class S03BasicTest {
@@ -17,25 +18,31 @@ public class S03BasicTest {
   private static String primateImlContent;
   private static String mammalImlContent;
 
+  private static String modulesXmlContent;
+
   @BeforeAll
   public static void before_all() {
-    dolphinImlContent = loadBazelGeneratedImlFile("03_basic/dolphin/idea_dolphin_module.iml");
-    humanImlContent = loadBazelGeneratedImlFile("03_basic/human/idea_human_module.iml");
-    gorillaImlContent = loadBazelGeneratedImlFile("03_basic/gorilla/idea_gorilla_module.iml");
-    primateImlContent = loadBazelGeneratedImlFile("03_basic/primate/idea_primate_module.iml");
-    mammalImlContent = loadBazelGeneratedImlFile("03_basic/mammal/idea_mammal_module.iml");
+    dolphinImlContent = loadBazelGeneratedFile("03_basic/dolphin/idea_dolphin_module.iml");
+    humanImlContent = loadBazelGeneratedFile("03_basic/human/idea_human_module.iml");
+    gorillaImlContent = loadBazelGeneratedFile("03_basic/gorilla/idea_gorilla_module.iml");
+    primateImlContent = loadBazelGeneratedFile("03_basic/primate/idea_primate_module.iml");
+    mammalImlContent = loadBazelGeneratedFile("03_basic/mammal/idea_mammal_module.iml");
+
+    modulesXmlContent = loadBazelGeneratedFile("03_basic/idea_project_modules.xml");
   }
 
   @Test
   public void source_folders_sample() {
     // this scenario has one source file, in a non-maven-standard layout
     assertEquals(asList(
+      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./out/production/generated",
+      "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./out/test/generated_tests",
       "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/main/java",
       "file://$MODULE_DIR$/../../../../../03_basic/dolphin/./src/test/java"),
       xpathList(dolphinImlContent, "/module/component/content/sourceFolder/@url"));
 
     assertEquals(
-      asList("false", "true"),
+      asList("false", "true", "false", "true"),
       xpathList(dolphinImlContent, "/module/component/content/sourceFolder/@isTestSource"));
   }
 
@@ -75,5 +82,13 @@ public class S03BasicTest {
 
     assertEquals(asList("idea_mammal_module", "idea_primate_module"),
       xpathList(gorillaImlContent, "/module/component/orderEntry[@type='module']/@module-name"));
+  }
+
+  @Test
+  public void modules_xml() {
+    assertEquals(emptyList(),
+      xpathList(modulesXmlContent, "/project/component/modules/module/fileurl").stream()
+        .map(u -> u.split("/")[u.split("/").length-1])
+        .collect(toList()));
   }
 }

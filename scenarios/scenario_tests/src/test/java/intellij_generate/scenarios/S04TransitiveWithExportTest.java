@@ -3,7 +3,7 @@ package intellij_generate.scenarios;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static intellij_generate.scenarios.TestUtil.loadBazelGeneratedImlFile;
+import static intellij_generate.scenarios.TestUtil.loadBazelGeneratedFile;
 import static intellij_generate.scenarios.TestUtil.removeWorkingDirectory;
 import static intellij_generate.scenarios.TestUtil.xpathList;
 import static java.util.Arrays.asList;
@@ -16,9 +16,9 @@ public class S04TransitiveWithExportTest {
 
   @BeforeAll
   public static void before_all() {
-    grandparentImlContent = loadBazelGeneratedImlFile("04_transitive_via_export/grandparent/idea_grandparent_module.iml");
-    parentImlContent = loadBazelGeneratedImlFile("04_transitive_via_export/parent/idea_parent_module.iml");
-    childImlContent = loadBazelGeneratedImlFile("04_transitive_via_export/child/idea_child_module.iml");
+    grandparentImlContent = loadBazelGeneratedFile("04_transitive_via_export/grandparent/idea_grandparent_module.iml");
+    parentImlContent = loadBazelGeneratedFile("04_transitive_via_export/parent/idea_parent_module.iml");
+    childImlContent = loadBazelGeneratedFile("04_transitive_via_export/child/idea_child_module.iml");
   }
 
   @Test

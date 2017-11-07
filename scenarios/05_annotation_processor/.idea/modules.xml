@@ -1,1 +1,1 @@
-../../bazel-bin/05_annotation_processor/idea_project_modules.xml
+../../bazel-scenarios/bazel-out/darwin_x86_64-fastbuild/bin/05_annotation_processor/idea_project_modules.xml

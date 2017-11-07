@@ -37,6 +37,27 @@ def _impl(ctx):
         ],
         progress_message="Generating intellij compiler.xml file: %s" % ctx.outputs.compiler_xml_file.path)
 
+    shell_script_content = \
+"""#!/bin/bash -e
+
+if [ "$1" = "--force" ]; then
+    rm -f compiler.xml
+else
+    if [ -f compiler.xml ]; then
+        echo "Refusing to overwrite $(pwd)/compiler.xml" > /dev/stderr
+        exit 0
+    fi
+fi
+
+ln -s $(dirname $0)/%s compiler.xml
+""" % ctx.outputs.compiler_xml_file.basename
+
+    ctx.actions.write(
+        output=ctx.outputs.compiler_xml_installer_script_file,
+        content=shell_script_content,
+        is_executable=True)
+
+
 intellij_compiler_xml = rule(
     doc="""Given a mapping of iml module targets to profile names, generate an intellij compiler.xml file.
 
@@ -63,5 +84,8 @@ intellij_compiler_xml = rule(
         "iml_target_to_annotation_profile": attr.label_keyed_string_dict(doc=""),
     },
 
-    outputs={"compiler_xml_file": "%{name}_compiler.xml"},
+    outputs={
+        "compiler_xml_file": "%{name}_compiler.xml",
+        "compiler_xml_installer_script_file": "install_%{name}_compiler_xml.sh",
+    },
 )

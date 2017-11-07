@@ -30,6 +30,26 @@ def _impl(ctx):
         ],
         progress_message="Generating intellij modules.xml file: %s" % ctx.outputs.modules_xml_file.path)
 
+    shell_script_content = \
+"""#!/bin/bash -e
+
+if [ "$1" = "--force" ]; then
+    rm -f modules.xml
+else
+    if [ -f modules.xml ]; then
+        echo "Refusing to overwrite $(pwd)/modules.xml" > /dev/stderr
+        exit 0
+    fi
+fi
+
+ln -s $(dirname $0)/%s modules.xml
+""" % ctx.outputs.modules_xml_file.basename
+
+    ctx.actions.write(
+        output=ctx.outputs.modules_xml_installer_script_file,
+        content=shell_script_content,
+        is_executable=True)
+
 # this just auto-builds an xml based on the set of targets you specify at build time
 # so, should it's just the result of some bazel build invocation (however you want to run that...
 # multiple modules etc)
@@ -47,5 +67,8 @@ intellij_modules_xml = rule(
           "to discover intellij_iml targets, in order to generate the modules.xml content."),
     },
 
-    outputs={"modules_xml_file": "%{name}_modules.xml"},
+    outputs={
+        "modules_xml_file": "%{name}_modules.xml",
+        "modules_xml_installer_script_file": "install_%{name}_modules_xml.sh",
+    },
 )

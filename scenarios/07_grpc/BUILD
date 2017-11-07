@@ -1,39 +1,39 @@
-package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//07_grpc:__subpackages__"])
+
+proto_library(
+    name = "proto",
+    srcs = ["src/main/proto/fortune.proto"],
+)
+
+java_proto_library(
+    name = "proto_java",
+    deps = [":proto"],
+)
 
 # see https://groups.google.com/forum/#!topic/bazel-discuss/75DSeUTYBxE
 load("@grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 java_grpc_library(
-    name = "fortune_java_grpc",
-    deps = [":fortune_java_proto"],
-    srcs = [":fortune_proto"],
-)
-
-java_proto_library(
-    name = "fortune_java_proto",
-    deps = [":fortune_proto"],
-)
-
-proto_library(
-    name = "fortune_proto",
-    srcs = ["src/main/proto/fortune.proto"],
+    name = "grpc",
+    deps = [":proto_java"],
+    srcs = [":proto"],
 )
 
 java_library(
-    name = "grpc_lib",
+    name = "lib",
     srcs = glob(["src/main/java/**/*.java"]),
     deps = [
-      ":fortune_java_grpc",
-      ":fortune_java_proto",
+      ":grpc",
+      ":proto_java",
       "@grpc_java//stub",
     ],
 )
 
 java_library(
-    name = "grpc_tests_lib",
+    name = "test_lib",
     srcs = glob(["src/test/java/**/*.java"]),
     deps=[
-      ":grpc_lib",
-      ":fortune_java_proto",
+      ":lib",
+      ":proto_java",
       "@grpc_java//stub",
 
       "@org_junit_jupiter_junit_jupiter_api//jar",
@@ -43,28 +43,27 @@ java_library(
 
 load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 junit5_all_in_package_test(
-    name="grpc_tests",
+    name="tests",
     java_package="fortune_grpc",
-    runtime_deps=[":grpc_tests_lib"]
+    runtime_deps=[":test_lib"]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
-    name = "idea_fortune_grpc_module",
-    compile_lib_deps = [":grpc_lib"],
-    test_lib_deps = [":grpc_tests_lib"],
+    name = "iml",
+    compile_lib_deps = [":lib"],
+    test_lib_deps = [":test_lib"],
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "07modules",
-    deps = [
-      ":idea_fortune_grpc_module",
-    ]
+    name = "modules_xml",
+    deps = [":iml"]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
 intellij_project(
-  name="07proj",
-  intellij_modules_xml=":07modules",
+  name="idea_project",
+  intellij_modules_xml=":modules_xml",
+  visibility=["//:__subpackages__"],
 )

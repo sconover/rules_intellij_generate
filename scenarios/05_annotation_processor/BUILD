@@ -1,24 +1,25 @@
-package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//05_annotation_processor:__subpackages__"])
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "05modules",
+    name = "modules_xml",
     deps = [
-      "//05_annotation_processor/usage:idea_usage_module",
+      "//05_annotation_processor/usage:iml",
     ]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_compiler_xml")
 intellij_compiler_xml(
-    name = "05processors",
+    name = "compiler_xml",
     iml_target_to_annotation_profile = {
-      "//05_annotation_processor/usage:idea_usage_module" : "foo_profile",
+      "//05_annotation_processor/usage:iml" : "foo_profile",
     }
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
 intellij_project(
-  name="05proj",
-  intellij_modules_xml=":05modules",
-  intellij_compiler_xml=":05processors",
+  name="idea_project",
+  intellij_modules_xml=":modules_xml",
+  intellij_compiler_xml=":compiler_xml",
+  visibility=["//:__subpackages__"],
 )

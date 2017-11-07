@@ -1,33 +1,34 @@
-package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//01_one_class:__subpackages__"])
 
 java_library(
-    name = "one_class",
+    name = "lib",
     srcs = glob(["src/**/*.java"]),
 )
 
 java_binary(
-    name = "one_class_run",
+    name = "run_A",
     main_class="oneclass.A",
     srcs = glob(["src/**/*.java"]),
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
-    name = "idea_root_module",
+    name = "iml",
     sources_roots = ["src"],
-    compile_lib_deps = [":one_class"],
+    compile_lib_deps = [":lib"],
     test_sources_roots = [],
     test_lib_deps = [],
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "01modules",
-    deps = [":idea_root_module"]
+    name = "modules_xml",
+    deps = [":iml"]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
 intellij_project(
-  name="01proj",
-  intellij_modules_xml=":01modules",
+  name="idea_project",
+  intellij_modules_xml=":modules_xml",
+  visibility=["//:__subpackages__"],
 )

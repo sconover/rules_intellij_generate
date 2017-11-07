@@ -1,15 +1,16 @@
-package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//06_protobuf_messages:__subpackages__"])
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "06modules",
+    name = "modules_xml",
     deps = [
-      "//06_protobuf_messages/usage:idea_usage_module",
+      "//06_protobuf_messages/usage:iml",
     ]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
 intellij_project(
-  name="06proj",
-  intellij_modules_xml=":06modules",
+  name="idea_project",
+  intellij_modules_xml=":modules_xml",
+  visibility=["//:__subpackages__"],
 )

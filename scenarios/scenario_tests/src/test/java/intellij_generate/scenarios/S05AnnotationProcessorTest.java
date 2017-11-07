@@ -13,7 +13,7 @@ public class S05AnnotationProcessorTest {
 
   @BeforeAll
   public static void before_all() {
-    compilerXmlContent = loadBazelGeneratedFile("05_annotation_processor/05processors_compiler.xml");
+    compilerXmlContent = loadBazelGeneratedFile("05_annotation_processor/compiler_xml_compiler.xml");
   }
 
   @Test
@@ -23,7 +23,7 @@ public class S05AnnotationProcessorTest {
       xpathList(compilerXmlContent, "/project/component/annotationProcessing/profile/@name"));
 
     assertEquals(
-      asList("idea_usage_module"),
+      asList("iml"),
       xpathList(compilerXmlContent, "/project/component/annotationProcessing/profile[@name='foo_profile']/module/@name"));
 
     assertEquals(

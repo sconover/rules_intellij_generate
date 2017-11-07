@@ -13,7 +13,7 @@ public class S05AnnotationProcessorTest {
 
   @BeforeAll
   public static void before_all() {
-    compilerXmlContent = loadBazelGeneratedFile("05_annotation_processor/idea_annotation_processors_compiler.xml");
+    compilerXmlContent = loadBazelGeneratedFile("05_annotation_processor/05processors_compiler.xml");
   }
 
   @Test

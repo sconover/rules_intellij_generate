@@ -9,6 +9,7 @@ intellij_project_group(
     "//05_annotation_processor:idea_project",
     "//06_protobuf_messages:idea_project",
     "//07_grpc:idea_project",
+    "//08_auto_value:idea_project",
     "//scenario_tests:idea_project",
   ],
 )

@@ -1,6 +1,7 @@
 workspace(name="rules_intellij_generate_scenarios")
 
 maven_jar(name="com_google_guava_guava",         artifact="com.google.guava:guava:19.0")
+maven_jar(name="com_google_auto_value",          artifact="com.google.auto.value:auto-value:1.5.2")
 
 local_repository(
     name = "rules_intellij_generate",

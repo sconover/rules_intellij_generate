@@ -67,16 +67,16 @@ public class S03BasicTest {
     assertEquals(emptyList(),
       xpathList(mammalImlContent, "/module/component/orderEntry[@type='module']/@module-name"));
 
-    assertEquals(asList("idea_mammal_module"),
+    assertEquals(asList("mammal"),
       xpathList(primateImlContent, "/module/component/orderEntry[@type='module']/@module-name"));
 
-    assertEquals(asList("idea_mammal_module"),
+    assertEquals(asList("mammal"),
       xpathList(dolphinImlContent, "/module/component/orderEntry[@type='module']/@module-name"));
 
-    assertEquals(asList("idea_mammal_module", "idea_primate_module"),
+    assertEquals(asList("mammal", "primate"),
       xpathList(humanImlContent, "/module/component/orderEntry[@type='module']/@module-name"));
 
-    assertEquals(asList("idea_mammal_module", "idea_primate_module"),
+    assertEquals(asList("mammal", "primate"),
       xpathList(gorillaImlContent, "/module/component/orderEntry[@type='module']/@module-name"));
   }
 

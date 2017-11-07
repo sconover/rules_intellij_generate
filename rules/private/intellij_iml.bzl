@@ -1,5 +1,5 @@
 load(":common.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR",
-    "install_script_provider", "path_relative_to_workspace_root")
+    "install_script_provider", "path_relative_to_workspace_root", "dir_relative_to_workspace_root", "build_dirname")
 
 # see https://bazel.build/designs/skylark/declared-providers.html
 iml_info_provider = provider(
@@ -112,7 +112,7 @@ def _prepare_module_manifest_file(ctx, scope_to_idea_module_deps, manifest_file_
     return module_manifest_file
 
 def _iml_path_relative_to_workspace_root(ctx):
-    return path_relative_to_workspace_root(ctx, ctx.attr.name + ".iml")
+    return path_relative_to_workspace_root(ctx, _symlink_iml_name(ctx) + ".iml")
 
 def _prepare_iml_info_provider_result(ctx):
     """This is the way parent iml module information is known by child modules,
@@ -143,7 +143,7 @@ def _prepare_iml_info_provider_result(ctx):
         compile_lib_deps=ctx.attr.compile_lib_deps,
         transitive_compile_lib_deps=transitive_compile_lib_deps,
 
-        iml_module_name=ctx.attr.name,
+        iml_module_name=_symlink_iml_name(ctx),
         transitive_iml_module_names=transitive_iml_module_names,
 
         iml_module_file=ctx.outputs.iml_file,
@@ -153,6 +153,9 @@ def _prepare_iml_info_provider_result(ctx):
         transitive_iml_paths_relative_to_workspace_root=transitive_iml_paths_relative_to_workspace_root,
     )
 
+def _symlink_iml_name(ctx):
+    return build_dirname(ctx) if ctx.attr.use_directory_name_as_symlink_name else ctx.attr.name
+
 def _create_install_script_and_return_install_script_provider(ctx):
     """An installer script, that makes a symlink to the generated iml file."""
 
@@ -161,6 +164,8 @@ def _create_install_script_and_return_install_script_provider(ctx):
         template=ctx.file._install_script_template_file,
         substitutions={
           "{{iml_path_relative_to_workspace_root}}": _iml_path_relative_to_workspace_root(ctx),
+          "{{source_iml_file_name}}": ctx.attr.name + ".iml",
+          "{{dest_iml_file_name}}": _symlink_iml_name(ctx) + ".iml",
         },
         is_executable=True)
 
@@ -287,6 +292,13 @@ intellij_iml = rule(
             default=Label("//private:intellij_generate_iml"),
             executable=True,
             cfg="target"),
+
+        "use_directory_name_as_symlink_name": attr.bool(
+            doc="If there is only one iml file for this directory, " +
+                "this option causes the name of the installed iml symlink to match the directory name. " +
+                "Intellij then conveniently collapses the directory and iml name into a single name, in the IDE project view. " +
+                "Opt out of this behavior by explicitly setting this to False - this will use the target name as the iml name.",
+            default=True),
 
         "compile_module_deps": attr.label_list(doc="inteliij_iml targets, which will become COMPILE module dependencies in idea."),
         "compile_lib_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the COMPILE library section of the iml."),

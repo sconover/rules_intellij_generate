@@ -26,8 +26,11 @@ install_script_provider = provider(
 def path_relative_to_workspace_root(ctx, relative_path):
     return ctx.build_file_path.rstrip("/BUILD") + "/" + relative_path
 
-def project_dir_relative_to_workspace_root(ctx):
+def dir_relative_to_workspace_root(ctx):
     return ctx.build_file_path.rstrip("/BUILD")
 
 def dot_idea_project_dir_relative_to_workspace_root(ctx):
-    return project_dir_relative_to_workspace_root(ctx) + "/.idea"
+    return dir_relative_to_workspace_root(ctx) + "/.idea"
+
+def build_dirname(ctx):
+    return ctx.build_file_path.rstrip("/BUILD").split("/")[-1]

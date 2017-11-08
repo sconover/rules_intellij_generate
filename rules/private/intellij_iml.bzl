@@ -42,10 +42,19 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_t
         debug_log_lines.append("  process scope: '%s'" % scope)
         for dep in scope_to_java_deps[scope]:
             debug_log_lines.append("    process dependency: '%s'" % dep.label)
-            if len(dep.java.compilation_info.compilation_classpath.to_list())>0:
-                debug_log_lines.append("      java compilation classpath: '%s'" % dep.java.compilation_info.compilation_classpath.to_list())
-            if len(dep.java.compilation_info.runtime_classpath.to_list())>0:
-                debug_log_lines.append("      java runtime classpath: '%s'" % dep.java.compilation_info.runtime_classpath.to_list())
+
+            all_cp_items = []
+
+            if dep.java.compilation_info == None:
+                debug_log_lines.append("      (no java compilation classpath found)")
+            else:
+                if len(dep.java.compilation_info.compilation_classpath.to_list())>0:
+                    debug_log_lines.append("      java compilation classpath: '%s'" % dep.java.compilation_info.compilation_classpath.to_list())
+                if len(dep.java.compilation_info.runtime_classpath.to_list())>0:
+                    debug_log_lines.append("      java runtime classpath: '%s'" % dep.java.compilation_info.runtime_classpath.to_list())
+
+                all_cp_items += dep.java.compilation_info.runtime_classpath.to_list()
+
             if len(dep.java.transitive_deps.to_list()) > 0:
                 debug_log_lines.append("      java transitive deps: '%s'" % dep.java.transitive_deps.to_list())
             if len(dep.java.transitive_exports.to_list()) > 0:
@@ -53,8 +62,6 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_t
             if len(dep.java.transitive_runtime_deps.to_list()) > 0:
                 debug_log_lines.append("      java transitive runtime deps: '%s'" % dep.java.transitive_runtime_deps.to_list())
 
-            all_cp_items = []
-            all_cp_items += dep.java.compilation_info.runtime_classpath.to_list()
             all_cp_items += dep.java.transitive_runtime_deps.to_list()
 
             dependency_cp_items = depset()

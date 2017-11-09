@@ -34,3 +34,36 @@ def dot_idea_project_dir_relative_to_workspace_root(ctx):
 
 def build_dirname(ctx):
     return ctx.build_file_path.rstrip("/BUILD").split("/")[-1]
+
+transitive_iml_provider = provider(
+    doc = "TODO",
+    fields = {
+        "transitive_imls": "TODO",
+    }
+)
+
+# see https://bazel.build/designs/skylark/declared-providers.html
+iml_info_provider = provider(
+  doc = """The struct returned as the result of intellij_iml execution.
+           Primarily allows "child" modules to get information about
+           their "parent" modules, such as what the full set of immediate
+           and transitive iml module parents is, and the libs those parents
+           depend on.
+        """,
+  fields = {
+    "iml_module_name": "This iml module's name.",
+    "transitive_iml_module_names": "Names of all parent iml modules, of this iml module.",
+
+    "iml_path_relative_to_workspace_root": "Path to where the iml file gets symlinked, relative to the workspace root.",
+    "transitive_iml_paths_relative_to_workspace_root": "Paths to where the iml file gets symlinked, relative to the workspace root, for all parent iml's.",
+
+    "transitive_imls": "TODO",
+  })
+
+intellij_java_source_info_provider = provider(
+  doc = """TODO""",
+  fields = {
+    "source_folders": "TODO",
+    "java_dep": "TODO",
+    "transitive_intellij_java_sources": "TODO"
+  })

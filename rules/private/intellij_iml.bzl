@@ -1,33 +1,48 @@
 load(":common.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR",
     "install_script_provider", "path_relative_to_workspace_root", "dir_relative_to_workspace_root", "build_dirname")
 
-# see https://bazel.build/designs/skylark/declared-providers.html
-iml_info_provider = provider(
-  doc = """The struct returned as the result of intellij_iml execution.
-           Primarily allows "child" modules to get information about
-           their "parent" modules, such as what the full set of immediate
-           and transitive iml module parents is, and the libs those parents
-           depend on.
-        """,
-  fields = {
-    "compile_lib_deps": "This iml module's complie library dependencies.",
-    "transitive_compile_lib_deps": "All complie library dependencies of all parent iml modules, of this iml module.",
+load(":common.bzl", "iml_info_provider", "transitive_iml_provider", "intellij_java_source_info_provider")
 
-    "iml_module_name": "This iml module's name.",
-    "transitive_iml_module_names": "Names of all parent iml modules, of this iml module.",
+def _intellij_source_deps_including_transitive(all_deps):
+    results = []
+    for dep in all_deps:
+        if intellij_java_source_info_provider in dep:
+            if dep not in results:
+                results.append(dep)
+            for tdep in dep[intellij_java_source_info_provider].transitive_intellij_java_sources:
+                if tdep not in results:
+                    results.append(tdep)
+    return results
 
-    "iml_module_file": "This iml module's file.",
-    "transitive_iml_module_files": "Files of all parent iml modules, of this iml module.",
+def _intellij_iml_deps_including_transitive(dep):
+    results = []
+    if transitive_iml_provider in dep:
+        for tdep in dep[transitive_iml_provider].transitive_imls:
+            if tdep not in results:
+                results.append(tdep)
+    return results
 
-    "iml_path_relative_to_workspace_root": "Path to where the iml file gets symlinked, relative to the workspace root.",
-    "transitive_iml_paths_relative_to_workspace_root": "Paths to where the iml file gets symlinked, relative to the workspace root, for all parent iml's.",
-  })
+def _compile_module_deps(ctx):
+    if ctx.attr.java_source != None:
+        return _intellij_iml_deps_including_transitive(ctx.attr.java_source)
+    else:
+        return []
+
+def _prepare_transitive_iml_provider(ctx):
+    if ctx.attr.java_source != None:
+        return transitive_iml_provider(transitive_imls=_intellij_iml_deps_including_transitive(ctx.attr.java_source))
+    else:
+        return transitive_iml_provider(transitive_imls=[])
+
+# with respect to intellij_java_source information, an iml module acts just like its java_source
+def _prepare_intellij_java_source_info_provider(ctx):
+    return ctx.attr.java_source[intellij_java_source_info_provider]
 
 # should subtract out jars based on immediate compile-lib deps, and jars based on module deps
 # perhaps more generally: if the project (source roots) contains all the source files for a jar dep, ignore than dep
 # (This is an ongoing challenge, the solution in place probably isn't quite general enough,
 #  it may well lead to unforeseen [bad] surprises. See code comments below.)
-def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_to_java_deps, artifact_exclude_paths, manifest_file_name, debug_log_lines):
+def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_to_java_deps, manifest_file_name, debug_log_lines):
     """Given a bazel rule ctx, a list of java dependency labels,
        find all java jar libraries for the dependencies,
        and list them in a manifest file consisting of two columns:
@@ -36,6 +51,11 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_t
        column 3: the library scope, either COMPILE or TEST
     """
 
+    java_sources_label_set = {}
+    for scope in scope_to_java_deps.keys():
+        for dep in _intellij_source_deps_including_transitive(scope_to_java_deps[scope]):
+            java_sources_label_set[dep[intellij_java_source_info_provider].java_dep.label] = dep.label
+
     debug_log_lines.append("prepare library manifest file: '%s'" % manifest_file_name)
     library_manifest_content = ""
     for scope in scope_to_java_deps.keys():
@@ -43,8 +63,9 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_t
         for dep in scope_to_java_deps[scope]:
             debug_log_lines.append("    process dependency: '%s'" % dep.label)
 
-            all_cp_items = []
+            debug_log_lines.append("      is intellij java source?: " + str(dep[intellij_java_source_info_provider]!=None))
 
+            all_cp_items = []
             if dep.java.compilation_info == None:
                 debug_log_lines.append("      (no java compilation classpath found)")
             else:
@@ -66,13 +87,11 @@ def _prepare_library_manifest_file_from_java_runtime_classpath_info(ctx, scope_t
 
             dependency_cp_items = depset()
             for cp_item in all_cp_items:
-                # This guards againt making the jar containing the classes
-                # that are source files in the module in question, part of
-                # the module's jar dependency list.
-                #
-                # Or, it should. The module-dependency-decision logic is a WIP for sure.
-                if cp_item.path in artifact_exclude_paths:
-                    debug_log_lines.append("      not adding classpath item, because it appears to be generated by this dependency: '%s'" % cp_item.path)
+                if cp_item.owner in java_sources_label_set:
+                    # This guards againt making the jar containing the classes
+                    # that are source files in the module in question, part of
+                    # the module's jar dependency list.
+                    debug_log_lines.append("      not adding classpath item, because it is generated by an intellij java source dependency: '%s' dep='%s'" % (cp_item.path, java_sources_label_set[cp_item.owner]))
                 else:
                     debug_log_lines.append("      add classpath item to depset (which will de-dup): '%s'" % cp_item.path)
                     dependency_cp_items += [cp_item]
@@ -103,15 +122,20 @@ def _prepare_module_manifest_file(ctx, scope_to_idea_module_deps, manifest_file_
        """
     debug_log_lines.append("prepare module manifest file: '%s'" % manifest_file_name)
     module_manifest_content = ""
+
+    all_iml_modules = []
     for scope in scope_to_idea_module_deps.keys():
         debug_log_lines.append("  process scope: '%s'" % scope)
         for dep in scope_to_idea_module_deps[scope]:
             debug_log_lines.append("    process dependency: '%s'" % dep.label)
 
-            all_iml_modules = dep[iml_info_provider].transitive_iml_module_names + [dep[iml_info_provider].iml_module_name]
-            for iml_module_name in all_iml_modules:
-                debug_log_lines.append("      including iml module: '%s'" % iml_module_name)
-                module_manifest_content += "%s %s\n" % (iml_module_name, scope)
+            for m in (dep[iml_info_provider].transitive_iml_module_names + [dep[iml_info_provider].iml_module_name]):
+                if m not in all_iml_modules:
+                    all_iml_modules.append(m)
+
+    for iml_module_name in all_iml_modules:
+        debug_log_lines.append("      including iml module: '%s'" % iml_module_name)
+        module_manifest_content += "%s %s\n" % (iml_module_name, scope)
 
     module_manifest_file = ctx.actions.declare_file(manifest_file_name)
     ctx.actions.write(output=module_manifest_file, content=module_manifest_content)
@@ -126,35 +150,19 @@ def _prepare_iml_info_provider_result(ctx):
        so that module and library dependencies can be properly generated for
        intellij files (i.e. the .iml's).
     """
-    transitive_compile_lib_deps = []
-    for dep in ctx.attr.compile_module_deps:
-        transitive_compile_lib_deps += dep[iml_info_provider].compile_lib_deps
-        transitive_compile_lib_deps += dep[iml_info_provider].transitive_compile_lib_deps
-
     transitive_iml_module_names = []
-    for dep in ctx.attr.compile_module_deps:
+    for dep in _compile_module_deps(ctx):
         transitive_iml_module_names += [dep[iml_info_provider].iml_module_name]
         transitive_iml_module_names += dep[iml_info_provider].transitive_iml_module_names
 
-    transitive_iml_module_files = []
-    for dep in ctx.attr.compile_module_deps:
-        transitive_iml_module_files += [dep[iml_info_provider].iml_module_file]
-        transitive_iml_module_files += dep[iml_info_provider].transitive_iml_module_files
-
     transitive_iml_paths_relative_to_workspace_root = []
-    for dep in ctx.attr.compile_module_deps:
+    for dep in _compile_module_deps(ctx):
         transitive_iml_paths_relative_to_workspace_root += [dep[iml_info_provider].iml_path_relative_to_workspace_root]
         transitive_iml_paths_relative_to_workspace_root += dep[iml_info_provider].transitive_iml_paths_relative_to_workspace_root
 
     return iml_info_provider(
-        compile_lib_deps=ctx.attr.compile_lib_deps,
-        transitive_compile_lib_deps=transitive_compile_lib_deps,
-
         iml_module_name=_symlink_iml_name(ctx),
         transitive_iml_module_names=transitive_iml_module_names,
-
-        iml_module_file=ctx.outputs.iml_file,
-        transitive_iml_module_files=transitive_iml_module_files,
 
         iml_path_relative_to_workspace_root=_iml_path_relative_to_workspace_root(ctx),
         transitive_iml_paths_relative_to_workspace_root=transitive_iml_paths_relative_to_workspace_root,
@@ -177,7 +185,7 @@ def _create_install_script_and_return_install_script_provider(ctx):
         is_executable=True)
 
     transitive_install_script_files = []
-    for dep in ctx.attr.compile_module_deps:
+    for dep in _compile_module_deps(ctx):
         transitive_install_script_files += [dep[install_script_provider].install_script_file]
         transitive_install_script_files += dep[install_script_provider].transitive_install_script_files
 
@@ -195,45 +203,35 @@ def _impl(ctx):
     debug_log_lines.append("ctx output iml_gen_debug_log: '%s'" % ctx.outputs.iml_gen_debug_log.path)
 
     sources_roots_args = []
-    for sources_root_attr in ctx.attr.sources_roots:
-        sources_roots_args.append("--sources-root")
-        sources_roots_args.append(sources_root_attr)
+    if ctx.attr.java_source != None:
+        for source_folder in ctx.attr.java_source[intellij_java_source_info_provider].source_folders:
+            sources_roots_args.append("--sources-root")
+            sources_roots_args.append(source_folder)
 
     test_sources_roots_args = []
-    for test_sources_root_attr in ctx.attr.test_sources_roots:
-        test_sources_roots_args.append("--test-sources-root")
-        test_sources_roots_args.append(test_sources_root_attr)
+    if ctx.attr.test_java_source != None:
+        for source_folder in ctx.attr.test_java_source[intellij_java_source_info_provider].source_folders:
+            test_sources_roots_args.append("--test-sources-root")
+            test_sources_roots_args.append(source_folder)
 
     resources_roots_args = []
     for resources_root_attr in ctx.attr.resources_roots:
         resources_roots_args.append("--resources-root")
         resources_roots_args.append(resources_root_attr)
 
-    # This is my current trick for figuring out all of the jars
-    # that get generated, based on the source files in the module
-    # in question. We don't want those jars to end up as library
-    # dependencies.
-    #
-    # Computational cost of what's below could be a problem in large
-    # projects, probably needs to be optimized.
-    artifact_paths_based_on_visible_source_files = []
-    for dep in (ctx.attr.compile_lib_deps + ctx.attr.test_lib_deps):
-        for local_file in dep.files.to_list():
-            if local_file.path not in artifact_paths_based_on_visible_source_files:
-                artifact_paths_based_on_visible_source_files.append(local_file.path)
+    module_manifest_file = _prepare_module_manifest_file(ctx, {"COMPILE": _compile_module_deps(ctx)}, "modules.manifest", debug_log_lines)
 
-    for iml_module in ctx.attr.compile_module_deps:
-        for dep in (iml_module[iml_info_provider].compile_lib_deps + iml_module[iml_info_provider].transitive_compile_lib_deps):
-            for local_file in dep.files.to_list():
-                if local_file.path not in artifact_paths_based_on_visible_source_files:
-                    artifact_paths_based_on_visible_source_files.append(local_file.path)
+    src_deps = []
+    if ctx.attr.java_source != None:
+        src_deps = [ctx.attr.java_source]
 
-    module_manifest_file = _prepare_module_manifest_file(ctx, {"COMPILE": ctx.attr.compile_module_deps}, "modules.manifest", debug_log_lines)
+    test_deps = []
+    if ctx.attr.test_java_source != None:
+        test_deps = [ctx.attr.test_java_source]
 
     library_manifest_file = _prepare_library_manifest_file_from_java_runtime_classpath_info(
         ctx,
-        {"COMPILE": ctx.attr.compile_lib_deps, "TEST": ctx.attr.test_lib_deps},
-        artifact_paths_based_on_visible_source_files,
+        {"COMPILE": src_deps, "TEST": test_deps},
         "libraries.manifest",
         debug_log_lines)
 
@@ -276,10 +274,30 @@ def _impl(ctx):
     debug_log_lines.append("FINISHED IML")
     ctx.actions.write(output=ctx.outputs.iml_gen_debug_log, content="\n".join(debug_log_lines) + "\n")
 
-    return [
-        _prepare_iml_info_provider_result(ctx),
-        _create_install_script_and_return_install_script_provider(ctx),
-    ]
+    # TODO: convert intellij_iml to use JavaInfo instead of the (old) .java
+    # This struct makes this rule usable anywhere any java rule can go,
+    # e.g. in a list of java_library deps
+
+    if ctx.attr.java_source!=None:
+        return struct(
+            java=ctx.attr.java_source.java,
+            providers=[
+                ctx.attr.java_source[JavaInfo],
+
+                _prepare_iml_info_provider_result(ctx),
+                _create_install_script_and_return_install_script_provider(ctx),
+                _prepare_transitive_iml_provider(ctx),
+                _prepare_intellij_java_source_info_provider(ctx),
+            ],
+        )
+    else:
+        return struct(
+            providers=[
+                _prepare_iml_info_provider_result(ctx),
+                _create_install_script_and_return_install_script_provider(ctx),
+                _prepare_transitive_iml_provider(ctx),
+            ],
+        )
 
 intellij_iml = rule(
     doc="""Generate an intellij iml file, containing:
@@ -307,16 +325,8 @@ intellij_iml = rule(
                 "Opt out of this behavior by explicitly setting this to False - this will use the target name as the iml name.",
             default=True),
 
-        "compile_module_deps": attr.label_list(doc="inteliij_iml targets, which will become COMPILE module dependencies in idea."),
-        "compile_lib_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the COMPILE library section of the iml."),
-        "sources_roots": attr.string_list(
-            default=["src/main/java"],
-            doc="Intellij will mark each of these directories as a 'Sources Root'"),
-
-        "test_lib_deps": attr.label_list(doc="java targets, whose dependencies will be used to build the TEST library section of the iml."),
-        "test_sources_roots": attr.string_list(
-            default=["src/test/java"],
-            doc="Intellij will mark each of these directories as a 'Test Sources Root'"),
+        "java_source": attr.label(doc="", providers=[JavaInfo, intellij_java_source_info_provider]),
+        "test_java_source": attr.label(doc="", providers=[JavaInfo, intellij_java_source_info_provider]),
 
         "resources_roots": attr.string_list(
             default=["src/main/resources", "src/test/resources"],

@@ -1,4 +1,4 @@
-package(default_visibility = ["//07_grpc:__subpackages__"])
+package(default_visibility = ["//08_auto_value:__subpackages__"])
 
 # see https://www.kchodorow.com/blog/2016/11/12/using-autovalue-with-bazel/
 java_plugin(
@@ -8,41 +8,36 @@ java_plugin(
     deps = ["@com_google_auto_value//jar"],
 )
 
-java_library(
-    name = "lib",
-    srcs = glob(["src/main/java/**/*.java"]),
-    deps = [
+load("@rules_intellij_generate//:def.bzl",
+    "intellij_source_java_library",
+    "MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP",
+    "MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP")
+
+intellij_source_java_library(
+    name="lib",
+    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP,
+    deps=[
         "@com_google_auto_value//jar",
         ":autovalue_plugin",
-    ],
+    ]
 )
 
-java_library(
-    name = "test_lib",
-    srcs = glob(["src/test/java/**/*.java"]),
+intellij_source_java_library(
+    name="test_lib",
+    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP,
     deps=[
-      ":lib",
+        ":lib",
 
-      "@org_junit_jupiter_junit_jupiter_api//jar",
-      "@org_opentest4j_opentest4j//jar",
+        "@org_junit_jupiter_junit_jupiter_api//jar",
+        "@org_opentest4j_opentest4j//jar",
     ],
-)
-
-load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
-junit5_all_in_package_test(
-    name="tests",
-    java_package="house",
-    runtime_deps=[":test_lib"]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
     name = "iml",
-    compile_lib_deps = [
-        ":lib",
-        # ":autovalue_plugin",
-    ],
-    test_lib_deps = [":test_lib"],
+    java_source=":lib",
+    test_java_source=":test_lib",
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
@@ -65,4 +60,11 @@ intellij_project(
   intellij_modules_xml=":modules_xml",
   intellij_compiler_xml=":compiler_xml",
   visibility=["//:__subpackages__"],
+)
+
+load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
+junit5_all_in_package_test(
+    name="tests",
+    java_package="house",
+    runtime_deps=[":test_lib"]
 )

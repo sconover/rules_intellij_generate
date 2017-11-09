@@ -1,13 +1,15 @@
 package(default_visibility = ["//02_one_class_and_one_test:__subpackages__"])
 
-java_library(
-    name = "lib",
-    srcs = glob(["src/**/*.java"]),
+load("@rules_intellij_generate//:def.bzl", "intellij_source_java_library")
+
+intellij_source_java_library(
+    name="lib",
+    source_folder_to_wildcard_map={"src": "**/*.java"},
 )
 
-java_library(
-    name = "test_lib",
-    srcs = glob(["test/**/*.java"]),
+intellij_source_java_library(
+    name="test_lib",
+    source_folder_to_wildcard_map={"test": "**/*.java"},
     deps=[
       ":lib",
 
@@ -16,20 +18,11 @@ java_library(
     ],
 )
 
-load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
-junit5_all_in_package_test(
-    name="tests",
-    java_package="one_class_and_one_test",
-    runtime_deps=[":test_lib"]
-)
-
 load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
-    name = "iml",
-    sources_roots = ["src"],
-    compile_lib_deps = [":lib"],
-    test_sources_roots = ["test"],
-    test_lib_deps = [":test_lib"],
+    name="iml",
+    java_source=":lib",
+    test_java_source=":test_lib",
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
@@ -43,4 +36,11 @@ intellij_project(
   name="idea_project",
   intellij_modules_xml=":modules_xml",
   visibility=["//:__subpackages__"],
+)
+
+load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
+junit5_all_in_package_test(
+    name="tests",
+    java_package="one_class_and_one_test",
+    runtime_deps=[":test_lib"]
 )

@@ -6,10 +6,15 @@ def _impl(ctx):
     """Based on ctx.attr inputs, invoke the modules.xml-generating executable,
        and write the result to the designated modules.xml path."""
 
-    iml_paths_relative_to_workspace_root = []
+    all_iml_paths_relative_to_workspace_root = []
     for dep in ctx.attr.deps:
-        iml_paths_relative_to_workspace_root.append(dep[iml_info_provider].iml_path_relative_to_workspace_root)
-        iml_paths_relative_to_workspace_root.extend(dep[iml_info_provider].transitive_iml_paths_relative_to_workspace_root)
+        all_iml_paths_relative_to_workspace_root.append(dep[iml_info_provider].iml_path_relative_to_workspace_root)
+        all_iml_paths_relative_to_workspace_root.extend(dep[iml_info_provider].transitive_iml_paths_relative_to_workspace_root)
+
+    iml_paths_relative_to_workspace_root = []
+    for iml_path in all_iml_paths_relative_to_workspace_root:
+        if iml_path not in iml_paths_relative_to_workspace_root:
+            iml_paths_relative_to_workspace_root.append(iml_path)
 
     idea_project_dir = dir_relative_to_workspace_root(ctx)
     iml_path_args = []

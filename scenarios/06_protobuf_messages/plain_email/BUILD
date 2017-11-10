@@ -1,11 +1,12 @@
 package(default_visibility = ["//:__subpackages__"])
 
-java_proto_library(
-    name = "plain_email_java_proto",
-    deps = [":plain_email_proto"],
-)
-
 proto_library(
-    name = "plain_email_proto",
+    name = "proto",
     srcs = ["src/main/proto/plain_email.proto"],
 )
+
+java_proto_library(
+    name = "proto_java",
+    deps = [":proto"],
+)
+

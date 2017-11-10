@@ -1,17 +1,18 @@
-package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//03_basic:__subpackages__"])
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "03modules",
+    name = "modules_xml",
     deps = [
-      "//03_basic/dolphin:idea_dolphin_module",
-      "//03_basic/gorilla:idea_gorilla_module",
-      "//03_basic/human:idea_human_module",
+      "//03_basic/dolphin:iml",
+      "//03_basic/gorilla:iml",
+      "//03_basic/human:iml",
     ]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
 intellij_project(
-  name="03proj",
-  intellij_modules_xml=":03modules",
+  name="idea_project",
+  intellij_modules_xml=":modules_xml",
+  visibility=["//:__subpackages__"],
 )

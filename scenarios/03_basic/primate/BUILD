@@ -1,19 +1,19 @@
 package(default_visibility = ["//03_basic:__subpackages__"])
 
 java_library(
-    name = "primate_lib",
+    name = "lib",
     srcs = glob(["src/main/java/**/*.java"]),
     deps=[
-      "//03_basic/mammal:mammal_lib",
+      "//03_basic/mammal:lib",
     ]
 )
 
 java_library(
-    name = "primate_tests_lib",
+    name = "test_lib",
     srcs = glob(["src/test/java/**/*.java"]),
     deps=[
-      ":primate_lib",
-      "//03_basic/mammal:mammal_lib",
+      ":lib",
+      "//03_basic/mammal:lib",
 
       "@org_junit_jupiter_junit_jupiter_api//jar",
       "@org_opentest4j_opentest4j//jar",
@@ -22,15 +22,15 @@ java_library(
 
 load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 junit5_all_in_package_test(
-    name="primate_tests",
+    name="tests",
     java_package="basic.primate",
-    runtime_deps=[":primate_tests_lib"]
+    runtime_deps=[":test_lib"]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
-    name = "idea_primate_module",
-    compile_lib_deps = [":primate_lib"],
-    compile_module_deps = ["//03_basic/mammal:idea_mammal_module"],
-    test_lib_deps = [":primate_tests_lib"],
+    name = "iml",
+    compile_lib_deps = [":lib"],
+    compile_module_deps = ["//03_basic/mammal:iml"],
+    test_lib_deps = [":lib"],
 )

@@ -1,15 +1,15 @@
-package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//02_one_class_and_one_test:__subpackages__"])
 
 java_library(
-    name = "one_class_and_one_test",
+    name = "lib",
     srcs = glob(["src/**/*.java"]),
 )
 
 java_library(
-    name = "one_class_and_one_test_tests_lib",
+    name = "test_lib",
     srcs = glob(["test/**/*.java"]),
     deps=[
-      ":one_class_and_one_test",
+      ":lib",
 
       "@org_junit_jupiter_junit_jupiter_api//jar",
       "@org_opentest4j_opentest4j//jar",
@@ -18,28 +18,29 @@ java_library(
 
 load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 junit5_all_in_package_test(
-    name="one_class_and_one_test_tests",
+    name="tests",
     java_package="one_class_and_one_test",
-    runtime_deps=[":one_class_and_one_test_tests_lib"]
+    runtime_deps=[":test_lib"]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_iml")
 intellij_iml(
-    name = "idea_root_module",
+    name = "iml",
     sources_roots = ["src"],
-    compile_lib_deps = [":one_class_and_one_test"],
+    compile_lib_deps = [":lib"],
     test_sources_roots = ["test"],
-    test_lib_deps = [":one_class_and_one_test_tests_lib"],
+    test_lib_deps = [":test_lib"],
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
-    name = "02modules",
-    deps = [":idea_root_module"]
+    name = "modules_xml",
+    deps = [":iml"]
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
 intellij_project(
-  name="02proj",
-  intellij_modules_xml=":02modules",
+  name="idea_project",
+  intellij_modules_xml=":modules_xml",
+  visibility=["//:__subpackages__"],
 )

@@ -16,9 +16,9 @@ public class S04TransitiveWithExportTest {
 
   @BeforeAll
   public static void before_all() {
-    grandparentImlContent = loadBazelGeneratedFile("04_transitive_via_export/grandparent/idea_grandparent_module.iml");
-    parentImlContent = loadBazelGeneratedFile("04_transitive_via_export/parent/idea_parent_module.iml");
-    childImlContent = loadBazelGeneratedFile("04_transitive_via_export/child/idea_child_module.iml");
+    grandparentImlContent = loadBazelGeneratedFile("04_transitive_via_export/grandparent/iml.iml");
+    parentImlContent = loadBazelGeneratedFile("04_transitive_via_export/parent/iml.iml");
+    childImlContent = loadBazelGeneratedFile("04_transitive_via_export/child/iml.iml");
   }
 
   @Test

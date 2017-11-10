@@ -14,16 +14,16 @@ public class S07GrpcTest {
 
   @BeforeAll
   public static void before_all() {
-    fortuneGrpcImlContent = loadBazelGeneratedFile("07_grpc/idea_fortune_grpc_module.iml");
+    fortuneGrpcImlContent = loadBazelGeneratedFile("07_grpc/iml.iml");
   }
 
   @Test
   public void libraries() {
     // might be going overboard, making a really brittle test. we'll see.
     assertEquals(asList(
-      "bazel-out/darwin_x86_64-fastbuild/bin/07_grpc/libfortune_java_grpc.jar!/",
+      "bazel-out/darwin_x86_64-fastbuild/bin/07_grpc/libgrpc.jar!/",
       "external/com_google_code_findbugs_jsr305/jar/jsr305-3.0.0.jar!/",
-      "bazel-out/darwin_x86_64-fastbuild/bin/07_grpc/libfortune_proto-speed.jar!/",
+      "bazel-out/darwin_x86_64-fastbuild/bin/07_grpc/libproto-speed.jar!/",
       "bazel-out/darwin_x86_64-fastbuild/bin/external/com_google_protobuf_java/libprotobuf_java.jar!/",
       "bazel-out/darwin_x86_64-fastbuild/bin/external/grpc_java/core/libcore.jar!/",
       "bazel-out/darwin_x86_64-fastbuild/bin/external/grpc_java/context/libcontext.jar!/",

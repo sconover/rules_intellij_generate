@@ -16,7 +16,7 @@ public class S02OneClassAndOneTest {
 
   @BeforeAll
   public static void before_all() {
-    imlContent = loadBazelGeneratedFile("02_one_class_and_one_test/idea_root_module.iml");
+    imlContent = loadBazelGeneratedFile("02_one_class_and_one_test/iml.iml");
   }
 
   @Test

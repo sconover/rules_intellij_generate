@@ -22,13 +22,13 @@ public class S03BasicTest {
 
   @BeforeAll
   public static void before_all() {
-    dolphinImlContent = loadBazelGeneratedFile("03_basic/dolphin/idea_dolphin_module.iml");
-    humanImlContent = loadBazelGeneratedFile("03_basic/human/idea_human_module.iml");
-    gorillaImlContent = loadBazelGeneratedFile("03_basic/gorilla/idea_gorilla_module.iml");
-    primateImlContent = loadBazelGeneratedFile("03_basic/primate/idea_primate_module.iml");
-    mammalImlContent = loadBazelGeneratedFile("03_basic/mammal/idea_mammal_module.iml");
+    dolphinImlContent = loadBazelGeneratedFile("03_basic/dolphin/iml.iml");
+    humanImlContent = loadBazelGeneratedFile("03_basic/human/iml.iml");
+    gorillaImlContent = loadBazelGeneratedFile("03_basic/gorilla/iml.iml");
+    primateImlContent = loadBazelGeneratedFile("03_basic/primate/iml.iml");
+    mammalImlContent = loadBazelGeneratedFile("03_basic/mammal/iml.iml");
 
-    modulesXmlContent = loadBazelGeneratedFile("03_basic/03modules_modules.xml");
+    modulesXmlContent = loadBazelGeneratedFile("03_basic/modules_xml_modules.xml");
   }
 
   @Test

@@ -30,7 +30,11 @@ def dir_relative_to_workspace_root(ctx):
     return ctx.build_file_path.rstrip("/BUILD")
 
 def dot_idea_project_dir_relative_to_workspace_root(ctx):
-    return dir_relative_to_workspace_root(ctx) + "/.idea"
+    subdir = dir_relative_to_workspace_root(ctx)
+    if subdir == "":
+        return ".idea"
+    else:
+        return subdir + "/.idea"
 
 def build_dirname(ctx):
     return ctx.build_file_path.rstrip("/BUILD").split("/")[-1]

@@ -20,7 +20,7 @@ def _impl(ctx):
     iml_path_args = []
     for p in iml_paths_relative_to_workspace_root:
         # use replace, not lstrip - lstrip is over-aggressive, and appears to have a bug (and as of this writing, the lstrip example also has a bug)
-        iml_path_relative_to_project_dir = p.replace(idea_project_dir + "/", "", 1)
+        iml_path_relative_to_project_dir = p if idea_project_dir == "" else p.replace(idea_project_dir + "/", "", 1)
         iml_path_args += ["--iml-path", iml_path_relative_to_project_dir]
 
     iml_installer_script_files = []

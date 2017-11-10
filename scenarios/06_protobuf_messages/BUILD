@@ -4,6 +4,8 @@ load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
 intellij_modules_xml(
     name = "modules_xml",
     deps = [
+      "//06_protobuf_messages/html_email:iml",
+      "//06_protobuf_messages/plain_email:iml",
       "//06_protobuf_messages/usage:iml",
     ]
 )

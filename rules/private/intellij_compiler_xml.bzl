@@ -9,7 +9,7 @@ def _impl(ctx):
 
     for dep in ctx.attr.iml_target_to_annotation_profile.keys():
         args.append("--module-to-profile-mapping")
-        args.append("%s=%s" % (dep.label.name, ctx.attr.iml_target_to_annotation_profile[dep]))
+        args.append("%s=%s" % (dep[iml_info_provider].iml_module_name, ctx.attr.iml_target_to_annotation_profile[dep]))
 
         # TODO: need motivating use case for test annotations. can/should test/compile be handled generically?
 
@@ -22,7 +22,7 @@ def _impl(ctx):
 
         for annotation_processor in all_annotation_processors:
             args.append("--module-to-annotation-processor-mapping")
-            args.append("%s=%s" % (dep.label.name, annotation_processor))
+            args.append("%s=%s" % (dep[iml_info_provider].iml_module_name, annotation_processor))
 
     ctx.action(
         executable = ctx.executable._intellij_generate_compiler_xml,

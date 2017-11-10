@@ -2,7 +2,6 @@ load("@rules_intellij_generate//private:intellij_iml.bzl", "intellij_iml")
 load("@rules_intellij_generate//private:intellij_source.bzl",
     "intellij_source_java_library",
     "intellij_source_java_plugin",
-    "intellij_source",
     "MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP",
     "MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP",
     "MAVEN_STANDARD_RESOURCE_FOLDER")

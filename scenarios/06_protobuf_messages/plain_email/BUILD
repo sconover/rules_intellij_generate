@@ -10,3 +10,5 @@ java_proto_library(
     deps = [":proto"],
 )
 
+load("@rules_intellij_generate//:def.bzl", "intellij_iml")
+intellij_iml(name = "iml")

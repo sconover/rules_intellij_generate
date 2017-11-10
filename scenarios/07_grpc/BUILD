@@ -11,6 +11,17 @@ java_proto_library(
 )
 
 # see https://groups.google.com/forum/#!topic/bazel-discuss/75DSeUTYBxE
+#
+# from https://github.com/grpc/grpc-java/issues/2756
+#  Args:
+#     name: (str) A unique name for this rule. Required.
+#     srcs: (list) a single proto_library target that contains the schema of the
+#         service. Required.
+#     deps: (list) a single java_proto_library target for the proto_library in
+#         srcs.  Required.
+#     flavor: (str) "normal" (default) for normal proto runtime. "lite"
+#         for the lite runtime.
+#     visibility: (list) the visibility list
 load("@grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 java_grpc_library(
     name = "grpc",

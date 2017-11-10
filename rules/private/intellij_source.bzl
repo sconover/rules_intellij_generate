@@ -72,15 +72,6 @@ def intellij_source_java_library(
         deps=deps,
     )
 
-def intellij_source(
-    name=None,
-    deps=[]):
-
-    _intellij_java_source(
-        name=name,
-        deps=deps,
-    )
-
 # TODO: factor out duplication in a sensible way when we have like 3 of these
 def intellij_source_java_plugin(
     name=None,

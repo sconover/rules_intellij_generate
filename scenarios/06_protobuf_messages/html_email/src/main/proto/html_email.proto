@@ -1,13 +1,29 @@
 syntax = "proto3";
 package html_email;
 
+// This example is also a demonstration of use of proto extensions.
+// As of this writing, there has only recently been a merge of this
+// fix, to make "well known protos" work:
+// https://github.com/google/protobuf/pull/3594
+// Which makes it so one can pull in well-known protos in a bazel build.
+// see https://github.com/google/protobuf/pull/3594/files
+import "google/protobuf/descriptor.proto";
+
 // see https://github.com/bazelbuild/bazel/issues/2039#issuecomment-258896609
 // "Protobuf import statements must be fully qualified, relative to the current
 //  workspace (I believe), and relative to the importer workspace this is the
 //  path to the importee."
 import "06_protobuf_messages/plain_email/src/main/proto/plain_email.proto";
 
+message SearchIndex {
+  bool should_index = 1;
+}
+
+extend google.protobuf.FieldOptions {
+  SearchIndex search_index = 50000;
+}
+
 message HtmlEmail {
   plain_email.PlainEmail plain_email = 1;
-  string body_html = 2;
+  string body_html = 2 [(search_index).should_index=true];
 }

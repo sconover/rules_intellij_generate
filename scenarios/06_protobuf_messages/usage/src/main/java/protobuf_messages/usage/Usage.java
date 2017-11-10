@@ -1,8 +1,12 @@
 package protobuf_messages.usage;
 
+import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.Descriptors;
 import html_email.HtmlEmailOuterClass.HtmlEmail;
 import plain_email.PlainEmailOuterClass.Identity;
 import plain_email.PlainEmailOuterClass.PlainEmail;
+
+import java.util.List;
 
 import static java.lang.String.format;
 

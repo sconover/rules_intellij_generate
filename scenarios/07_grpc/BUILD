@@ -2,7 +2,12 @@ package(default_visibility = ["//07_grpc:__subpackages__"])
 
 proto_library(
     name = "proto",
-    srcs = ["src/main/proto/fortune.proto"],
+    srcs = [
+        "src/main/proto/fortune.proto"
+    ],
+    deps = [
+        "@com_google_protobuf//:descriptor_proto",
+    ]
 )
 
 java_proto_library(
@@ -26,7 +31,9 @@ load("@grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 java_grpc_library(
     name = "grpc",
     deps = [":proto_java"],
-    srcs = [":proto"],
+    srcs = [
+        ":proto",
+    ],
 )
 
 load("@rules_intellij_generate//:def.bzl",
@@ -51,6 +58,7 @@ intellij_source_java_library(
         ":lib",
         ":proto_java",
         "@grpc_java//stub",
+        "@com_google_protobuf_java//:protobuf_java",
 
         "@org_junit_jupiter_junit_jupiter_api//jar",
         "@org_opentest4j_opentest4j//jar",

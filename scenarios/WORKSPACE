@@ -35,13 +35,15 @@ http_archive(
     strip_prefix = "protobuf-2df472690ec878ff75a2ccea0c7ff6df0ff69ee3",
     urls = ["https://github.com/google/protobuf/archive/2df472690ec878ff75a2ccea0c7ff6df0ff69ee3.zip"],
 )
+
 http_archive(
     name = "grpc_java",
-    urls = ["https://github.com/grpc/grpc-java/archive/6d9e149dcb1556d9a9626183b2484cfc24f647b4.zip"],
-    strip_prefix = "grpc-java-6d9e149dcb1556d9a9626183b2484cfc24f647b4",
+    urls = ["https://github.com/grpc/grpc-java/archive/65ae83e479c26c1a7adef6ca4cfd9ce7b738a19e.zip"],
+    strip_prefix = "grpc-java-65ae83e479c26c1a7adef6ca4cfd9ce7b738a19e",
 )
 load("@grpc_java//:repositories.bzl", "grpc_java_repositories")
 grpc_java_repositories(
     omit_com_google_protobuf=True,
+    omit_com_google_guava=True,
     omit_com_google_protobuf_java=True,
 )

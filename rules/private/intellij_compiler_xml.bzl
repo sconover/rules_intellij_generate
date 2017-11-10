@@ -1,5 +1,6 @@
 load(":common.bzl", "GENERATED_SOURCES_SUBDIR", "GENERATED_TEST_SOURCES_SUBDIR", "install_script_provider")
 load(":intellij_iml.bzl", "iml_info_provider") # see https://bazel.build/designs/skylark/declared-providers.html
+load(":common.bzl", "transitive_iml_provider")
 
 def _impl(ctx):
     """Based on ctx.attr inputs, invoke the compiler.xml-generating executable,
@@ -17,8 +18,9 @@ def _impl(ctx):
         # (which come from dependencies on java_plugin's),
         # collect these up.
         all_annotation_processors = depset()
-        for compile_lib_dep in (dep[iml_info_provider].compile_lib_deps): # TODO: include transitive module compile libs?
-            all_annotation_processors += compile_lib_dep.java.annotation_processing.processor_classnames
+        all_annotation_processors += dep.java.annotation_processing.processor_classnames
+        for tdep in dep[transitive_iml_provider].transitive_imls:
+            all_annotation_processors += tdep.java.annotation_processing.processor_classnames
 
         for annotation_processor in all_annotation_processors:
             args.append("--module-to-annotation-processor-mapping")

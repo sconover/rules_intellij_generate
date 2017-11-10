@@ -24,7 +24,8 @@ public class S06ProtobufMessagesTest {
     assertEquals(asList(
       "bazel-out/darwin_x86_64-fastbuild/bin/06_protobuf_messages/plain_email/libproto-speed.jar!/",
       "bazel-out/darwin_x86_64-fastbuild/bin/external/com_google_protobuf_java/libprotobuf_java.jar!/",
-      "bazel-out/darwin_x86_64-fastbuild/bin/06_protobuf_messages/html_email/libproto-speed.jar!/"),
+      "bazel-out/darwin_x86_64-fastbuild/bin/06_protobuf_messages/html_email/libproto-speed.jar!/",
+      "bazel-out/darwin_x86_64-fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar!/"),
       removeWorkingDirectory(
         xpathList(usageImlContent, "/module/component/orderEntry[@type='module-library' and not(@scope)]/library/CLASSES/root/@url")));
 

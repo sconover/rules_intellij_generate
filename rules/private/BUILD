@@ -27,26 +27,31 @@ java_binary(
 
 # === PRIVATE ===
 
-java_library(
-    name = "lib",
-    srcs = glob(["src/main/java/**/*.java"]),
+# use the rules developed in this project to also
+# generate intellij files for the project.
+
+load(":intellij_source.bzl",
+    "intellij_source_java_library",
+    "MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP",
+    "MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP")
+
+intellij_source_java_library(
+    name="lib",
+    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP,
     deps = [
         "@com_beust_jcommander//jar",
     ]
 )
 
-# TODO: some bazel+ junit5 magic can probably be done to make the tests run
-# automatically (without explicitly specifying a package), or from a directory or something.
+intellij_source_java_library(
+    name="test_lib",
+    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP,
+    deps=[
+      ":lib",
 
-java_library(
-  name="test_lib",
-  srcs = glob(["src/test/java/**/*.java"]),
-  deps=[
-    ":lib",
-
-    "@org_junit_jupiter_junit_jupiter_api//jar",
-    "@org_opentest4j_opentest4j//jar",
-  ],
+      "@org_junit_jupiter_junit_jupiter_api//jar",
+      "@org_opentest4j_opentest4j//jar",
+    ],
 )
 
 load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
@@ -64,14 +69,11 @@ exports_files([
     "install_intellij_iml.sh.template",
 ])
 
-# use the rules developed in this project to also
-# generate intellij files for the project.
-
 load(":intellij_iml.bzl", "intellij_iml")
 intellij_iml(
-    name = "iml",
-    compile_lib_deps = [":lib"],
-    test_lib_deps = [":test_lib"],
+    name="iml",
+    java_source=":lib",
+    test_java_source=":test_lib",
 )
 
 load(":intellij_modules_xml.bzl", "intellij_modules_xml")

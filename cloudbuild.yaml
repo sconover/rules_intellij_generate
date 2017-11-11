@@ -1,0 +1,66 @@
+steps:
+
+# rules:
+#  clean, incremental: ~1m -ish
+
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', 'gs://rules-intellij-generate-build-cache/bazel_cache_rules.tgz', '/tmp/bazel_cache_rules/bazel_cache_rules.tgz']
+  volumes:
+  - name: 'bazel-cache-rules'
+    path: '/tmp/bazel_cache_rules'
+- name: 'debian'
+  args: ['tar', 'xf', '/tmp/bazel_cache_rules/bazel_cache_rules.tgz', '-C', '/', '--warning=no-timestamp']
+  volumes:
+  - name: 'bazel-cache-rules'
+    path: '/tmp/bazel_cache_rules'
+- name: gcr.io/cloud-builders/bazel
+  args: ['--output_user_root=/tmp/bazel_cache_rules/cache', 'test', '//...']
+  dir: 'rules'
+  volumes:
+  - name: 'bazel-cache-rules'
+    path: '/tmp/bazel_cache_rules'
+- name: 'debian'
+  args: ['tar', 'cf', '/tmp/bazel_cache_rules/bazel_cache_rules.tgz', '/tmp/bazel_cache_rules/cache']
+  volumes:
+  - name: 'bazel-cache-rules'
+    path: '/tmp/bazel_cache_rules'
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', '/tmp/bazel_cache_rules/bazel_cache_rules.tgz', 'gs://rules-intellij-generate-build-cache']
+  volumes:
+  - name: 'bazel-cache-rules'
+    path: '/tmp/bazel_cache_rules'
+
+
+# scenarios:
+#  clean: ~14m (compile protos etc)
+#  incremental: ~1m20s
+
+
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', 'gs://rules-intellij-generate-build-cache/bazel_cache_scenarios.tgz', '/tmp/bazel_cache_scenarios/bazel_cache_scenarios.tgz']
+  volumes:
+  - name: 'bazel-cache-scenarios'
+    path: '/tmp/bazel_cache_scenarios'
+- name: 'debian'
+  args: ['tar', 'xf', '/tmp/bazel_cache_scenarios/bazel_cache_scenarios.tgz', '-C', '/', '--warning=no-timestamp']
+  volumes:
+  - name: 'bazel-cache-scenarios'
+    path: '/tmp/bazel_cache_scenarios'
+- name: gcr.io/cloud-builders/bazel
+  args: ['--output_user_root=/tmp/bazel_cache_scenarios/cache', 'build', '//...']
+  dir: 'scenarios'
+  volumes:
+  - name: 'bazel-cache-scenarios'
+    path: '/tmp/bazel_cache_scenarios'
+- name: 'debian'
+  args: ['tar', 'cf', '/tmp/bazel_cache_scenarios/bazel_cache_scenarios.tgz', '/tmp/bazel_cache_scenarios/cache']
+  volumes:
+  - name: 'bazel-cache-scenarios'
+    path: '/tmp/bazel_cache_scenarios'
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', '/tmp/bazel_cache_scenarios/bazel_cache_scenarios.tgz', 'gs://rules-intellij-generate-build-cache']
+  volumes:
+  - name: 'bazel-cache-scenarios'
+    path: '/tmp/bazel_cache_scenarios'
+
+timeout: 30m # should only matter for first-runs

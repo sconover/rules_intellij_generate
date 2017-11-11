@@ -1,12 +1,22 @@
 syntax = "proto3";
 package fortune;
 
+import "google/protobuf/descriptor.proto";
+
 message GetFortuneRequest {
   int32 fortune_number = 1;
 }
 
+message Truth {
+  bool is_the_fortune_actually_real = 1;
+}
+
+extend google.protobuf.FieldOptions {
+  Truth the_truth = 50000;
+}
+
 message GetFortuneResponse {
-  string fortune_content = 1;
+  string fortune_content = 1 [(the_truth).is_the_fortune_actually_real=true];
 }
 
 service FortuneService {

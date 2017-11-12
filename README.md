@@ -29,3 +29,5 @@ here is that you will have meaningful-looking proto jar dependencies when viewin
 - idea modules.xml: "modules_xml"
 - idea compiler.xml: "compiler_xml"
 - idea project: "idea_project"
+
+CI happen on Google Container Builder, to request access to the [Build History](https://console.cloud.google.com/gcr/builds?project=rules-intellij-generate) and build output, please contact the project maintainers directly, or file a Github Issue requesting access.

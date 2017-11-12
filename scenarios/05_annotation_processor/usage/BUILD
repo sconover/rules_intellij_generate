@@ -14,15 +14,11 @@ intellij_source_java_library(
     ]
 )
 
+load("@rules_junit5//:def.bzl", "JUNIT5_MINIMAL_DEPS")
 intellij_source_java_library(
     name="test_lib",
     source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP,
-    deps=[
-        ":lib",
-
-        "@org_junit_jupiter_junit_jupiter_api//jar",
-        "@org_opentest4j_opentest4j//jar",
-    ],
+    deps=[":lib"] + JUNIT5_MINIMAL_DEPS,
 )
 
 load("@rules_intellij_generate//:def.bzl", "intellij_iml")

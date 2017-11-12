@@ -1,5 +1,5 @@
 {
-  "name": "google-container-github",
+  "name": "google-container-github-status-updates-for-grpccraft",
   "version": "0.0.1",
   "description": "Github status integration for Google Cloud Container Builder, using Google Cloud Functions. see https://developer.github.com/v3/repos/statuses/",
   "main": "index.js",

@@ -4,7 +4,7 @@ def junit5_all_in_package_test(name=None, java_package=None, runtime_deps=[]):
         main_class="org.junit.platform.console.ConsoleLauncher",
         args=[
             "--select-package %s" % java_package,
-            "--details verbose",
+            "--details none",
         ],
         runtime_deps=runtime_deps + [
             "@org_apiguardian_apiguardian_api//jar",
@@ -31,3 +31,9 @@ def junit5_repositories():
     native.maven_jar(name="org_junit_platform_junit_platform_runner",    artifact="org.junit.platform:junit-platform-runner:1.0.1")
     native.maven_jar(name="org_opentest4j_opentest4j",                   artifact="org.opentest4j:opentest4j:1.0.0")
     native.maven_jar(name="org_apiguardian_apiguardian_api",             artifact="org.apiguardian:apiguardian-api:1.0.0")
+
+JUNIT5_MINIMAL_DEPS = [
+    "@org_apiguardian_apiguardian_api//jar",
+    "@org_junit_jupiter_junit_jupiter_api//jar",
+    "@org_opentest4j_opentest4j//jar",
+]

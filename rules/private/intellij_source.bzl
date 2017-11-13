@@ -55,6 +55,7 @@ def glob_from_intellij_source_folder_to_wildcard_map(source_folder_map):
 def intellij_source_java_library(
     name=None,
     source_folder_to_wildcard_map={},
+    resource_folder_to_wildcard_map={},
     deps=[],
     exports=[]):
 
@@ -62,6 +63,7 @@ def intellij_source_java_library(
     native.java_library(
         name = private_java_library_name,
         srcs = glob_from_intellij_source_folder_to_wildcard_map(source_folder_to_wildcard_map),
+        resources = glob_from_intellij_source_folder_to_wildcard_map(resource_folder_to_wildcard_map),
         deps=deps,
         exports=exports,
     )
@@ -99,7 +101,10 @@ def intellij_source_java_plugin(
     )
 
 MAVEN_STANDARD_RESOURCE_FOLDER="src/main/resources"
+MAVEN_STANDARD_RESOURCE_FOLDER_MAP={MAVEN_STANDARD_RESOURCE_FOLDER:"**/*"}
 
-MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP={"src/main/java":"**/*.java"}
-MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP={"src/test/java":"**/*.java"}
+MAVEN_STANDARD_JAVA_SOURCE_FOLDER="src/main/java"
+MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP={MAVEN_STANDARD_JAVA_SOURCE_FOLDER:"**/*.java"}
+MAVEN_STANDARD_JAVA_TEST_FOLDER="src/test/java"
+MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP={MAVEN_STANDARD_JAVA_TEST_FOLDER:"**/*.java"}
 

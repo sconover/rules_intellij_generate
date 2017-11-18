@@ -53,7 +53,7 @@ module.exports.subscribe = (event, callback) => {
   var gcbStatus = build['status']
   var startTime = build['startTime']
   var commitSha = build['sourceProvenance']['resolvedRepoSource']['commitSha'];
-  var buildUrl = "https://console.cloud.google.com/gcr/builds/" + build['id'] + "?project=grpccraft";
+  var buildUrl = "https://console.cloud.google.com/gcr/builds/" + build['id'] + "?project=rules_intellij_generate";
   var logUrl = build['logUrl'];
 
   console.log(gcbStatus, startTime, commitSha, buildUrl, logUrl);
@@ -114,7 +114,7 @@ module.exports.subscribe = (event, callback) => {
     headers: {
       'Authorization' : 'token your-personal-access-token-goes-here',
       'User-Agent': 'sconover-User-Agent'}, // github requires a user agent
-    url:     'https://api.github.com/repos/copypastel/grpc-craft/statuses/' + commitSha,
+    url:     'https://api.github.com/repos/sconover/rules_intellij_generate/statuses/' + commitSha,
     body:    '{"state": "' + githubState + '", "target_url": "' + logUrl + '", "description": "[GCB] ' + description + '"}'
   }, function(error, response, body){
     console.log(body);

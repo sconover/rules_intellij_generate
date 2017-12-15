@@ -31,3 +31,12 @@ here is that you will have meaningful-looking proto jar dependencies when viewin
 - idea project: "idea_project"
 
 CI happen on Google Container Builder, to request access to the [Build History](https://console.cloud.google.com/gcr/builds?project=rules-intellij-generate) and build output, please contact the project maintainers directly, or file a Github Issue requesting access.
+
+Wishlist
+  - Run targets
+  - Right now, runtime deps are specified as intellij compile deps. ideally we'd use
+    bazel ijar's as compile deps, and bazel runtime deps would become intellij runtime deps.
+    This would need to be different for test deps because intellij doesn't have a distinction
+    between test compile vs test runtime.
+  - Friendlier project setup (that perhaps wraps the .sh setup scripts that are generated)
+  - Faster .sh scripts. I think the cd'ing is the problem here.

@@ -56,14 +56,19 @@ def intellij_source_java_library(
     name=None,
     source_folder_to_wildcard_map={},
     resource_folder_to_wildcard_map={},
+    resources_override=[],
     deps=[],
     exports=[]):
+
+    final_resources = glob_from_intellij_source_folder_to_wildcard_map(resource_folder_to_wildcard_map)
+    if (len(resources_override)>0):
+        final_resources = resources_override
 
     private_java_library_name = "_" + name
     native.java_library(
         name = private_java_library_name,
         srcs = glob_from_intellij_source_folder_to_wildcard_map(source_folder_to_wildcard_map),
-        resources = glob_from_intellij_source_folder_to_wildcard_map(resource_folder_to_wildcard_map),
+        resources = final_resources,
         deps=deps,
         exports=exports,
     )

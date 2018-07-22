@@ -1,11 +1,2 @@
 workspace(name="rules_intellij_generate")
 
-load("//:def.bzl", "repositories_for_intellij_generate")
-repositories_for_intellij_generate()
-
-local_repository(
-    name = "rules_junit5",
-    path = "../rules_junit5",
-)
-load("@rules_junit5//:def.bzl", "junit5_repositories")
-junit5_repositories()

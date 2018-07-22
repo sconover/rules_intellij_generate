@@ -2,4 +2,9 @@ bazel-*
 out/
 .idea/
 *.iml
+!rules_intellij_generate.iml
 .DS_Store
+*.pyc
+node_modules
+workspace.xml
+.rig_sha1

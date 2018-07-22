@@ -8,15 +8,15 @@ local_repository(
     path = "../rules",
 )
 
-load("@rules_intellij_generate//:def.bzl", "repositories_for_intellij_generate")
-repositories_for_intellij_generate()
-
-local_repository(
+rules_junit5_sha = "e86a061d86ccb695f705d32c70804f9dc2f4d760"
+http_archive(
     name = "rules_junit5",
-    path = "../rules_junit5",
+    url = "https://github.com/sconover/rules_junit5/archive/%s.tar.gz" % rules_junit5_sha,
+    strip_prefix = "rules_junit5-%s" % rules_junit5_sha,
 )
 load("@rules_junit5//:def.bzl", "junit5_repositories")
 junit5_repositories()
+
 
 
 # Also see comments in html_email.proto and associated BUILD file
@@ -47,3 +47,62 @@ grpc_java_repositories(
     omit_com_google_guava=True,
     omit_com_google_protobuf_java=True,
 )
+
+
+# see https://github.com/bazelbuild/rules_nodejs
+
+# rules_nodejs depends on bazel_skylib
+# Bazel doesn't support transitive workspace deps so you must copy this.
+http_archive(
+    name = "bazel_skylib",
+    url = "https://github.com/bazelbuild/bazel-skylib/archive/0.3.1.zip",
+    strip_prefix = "bazel-skylib-0.3.1",
+    sha256 = "95518adafc9a2b656667bbf517a952e54ce7f350779d0dd95133db4eb5c27fb1",
+)
+
+git_repository(
+    name = "build_bazel_rules_nodejs",
+    remote = "https://github.com/bazelbuild/rules_nodejs.git",
+    tag = "0.11.3", # check for the latest tag when you install
+)
+
+load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
+load("@build_bazel_rules_nodejs//:defs.bzl", "npm_install")
+
+
+# 10_javascript
+node_repositories(
+    package_json = ["//10_javascript:package.json"],
+    node_version = "8.11.1"
+)
+npm_install(
+    name = "10_javascript_npm",
+    package_json = "//10_javascript:package.json",
+    package_lock_json = "//10_javascript:package-lock.json",
+)
+
+# 11_typescript
+node_repositories(
+    package_json = ["//11_typescript:package.json"],
+    node_version = "8.11.1"
+)
+npm_install(
+    name = "11_typescript_npm",
+    package_json = "//11_typescript:package.json",
+    package_lock_json = "//11_typescript:package-lock.json",
+)
+
+# 12_kotlin
+kotlin_release_version="1.2.30"
+rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
+
+http_archive(
+    name = "io_bazel_rules_kotlin",
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
+    type = "zip",
+    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories(kotlin_release_version=kotlin_release_version)
+kt_register_toolchains()

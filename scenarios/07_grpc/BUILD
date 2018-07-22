@@ -1,4 +1,10 @@
-package(default_visibility = ["//07_grpc:__subpackages__"])
+package(default_visibility = ["//:__subpackages__"])
+
+load("@grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+load("@rules_junit5//:def.bzl", "JUNIT5_MINIMAL_DEPS")
+load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
+load("@rules_intellij_generate//:def.bzl", "intellij_project")
+load("@rules_intellij_generate//:def.bzl", "intellij_module")
 
 proto_library(
     name = "proto",
@@ -11,7 +17,7 @@ proto_library(
 )
 
 java_proto_library(
-    name = "proto_java",
+    name = "java_proto",
     deps = [":proto"],
 )
 
@@ -27,65 +33,53 @@ java_proto_library(
 #     flavor: (str) "normal" (default) for normal proto runtime. "lite"
 #         for the lite runtime.
 #     visibility: (list) the visibility list
-load("@grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 java_grpc_library(
-    name = "grpc",
-    deps = [":proto_java"],
+    name = "java_grpc",
+    deps = [":java_proto"],
     srcs = [
         ":proto",
     ],
 )
 
-load("@rules_intellij_generate//:def.bzl",
-    "intellij_source_java_library",
-    "MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP",
-    "MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP")
+java_library(
+    name="java_lib",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps = [
+        ":java_proto",
+        ":java_grpc",
 
-intellij_source_java_library(
-    name="lib",
-    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP,
-    deps=[
-        ":grpc",
-        ":proto_java",
         "@grpc_java//stub",
+        "@com_google_protobuf_java//:protobuf_java",
     ]
 )
 
-load("@rules_junit5//:def.bzl", "JUNIT5_MINIMAL_DEPS")
-intellij_source_java_library(
-    name="test_lib",
-    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP,
+java_library(
+    name="java_test_lib",
+    srcs = glob(["src/test/java/**/*.java"]),
     deps=[
-        ":lib",
-        ":proto_java",
+        ":java_lib",
+        ":java_proto",
+
         "@grpc_java//stub",
         "@com_google_protobuf_java//:protobuf_java",
     ] + JUNIT5_MINIMAL_DEPS,
 )
 
-load("@rules_intellij_generate//:def.bzl", "intellij_iml")
-intellij_iml(
-    name = "iml",
-    java_source=":lib",
-    test_java_source=":test_lib",
-)
-
-load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 junit5_all_in_package_test(
-    name="tests",
+    name="java_tests",
     java_package="fortune_grpc",
-    runtime_deps=[":test_lib"]
+    runtime_deps=[":java_test_lib"]
 )
 
-load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
-intellij_modules_xml(
-    name = "modules_xml",
-    deps = [":iml"]
-)
+intellij_module(name="iml", iml_type="java-maven-style")
 
-load("@rules_intellij_generate//:def.bzl", "intellij_project")
 intellij_project(
-  name="idea_project",
-  intellij_modules_xml=":modules_xml",
-  visibility=["//:__subpackages__"],
+    name="project_07",
+    deps=[":java_test_lib"],
+    build_managed_label_matchlist=['{"label_name":"java_proto"}', '{"label_name":"java_grpc"}'],
+    test_lib_label_matchlist=['{"label_name":"java_test_lib"}'],
+    iml_types_file="//:iml_types.xml",
+    project_root_filegroup="//:automatically_placed_intellij_project_files",
+    project_root_filegroup_ignore_prefix="intellij_project_files",
+    modules=[":iml"]
 )

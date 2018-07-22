@@ -1,14 +1,15 @@
 package(default_visibility = ["//:__subpackages__"])
 
+load("@rules_intellij_generate//:def.bzl", "intellij_module")
+
 proto_library(
     name = "proto",
     srcs = ["src/main/proto/plain_email.proto"],
 )
 
 java_proto_library(
-    name = "proto_java",
+    name = "java_proto",
     deps = [":proto"],
 )
 
-load("@rules_intellij_generate//:def.bzl", "intellij_iml")
-intellij_iml(name = "iml")
+intellij_module(name="iml", iml_type="java-maven-style")

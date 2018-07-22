@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+    <component name="CompilerConfiguration">
+        <annotationProcessing>
+            <profile name="foo_profile" enabled="true">
+                <sourceOutputDir name="generated" />
+                <sourceTestOutputDir name="generated_tests" />
+                <processor name="annotation_processor.class_generator.ClassGeneratorAnnotationProcessor" />
+                <processor name="annotation_processor.text_file_generator.TextFileGeneratorAnnotationProcessor" />
+                <module name="usage" />
+            </profile>
+            <profile name="my_idea_auto_value_annotation_processor_profile" enabled="true">
+                <sourceOutputDir name="generated" />
+                <sourceTestOutputDir name="generated_tests" />
+                <processor name="com.google.auto.value.processor.AutoValueProcessor" />
+                <module name="08_auto_value" />
+            </profile>
+        </annotationProcessing>
+    </component>
+</project>

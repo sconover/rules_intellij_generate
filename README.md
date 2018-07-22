@@ -1,42 +1,57 @@
-Use Intellij in "classic mode". Core intellij project files are generated via your bazel build.
+# rules_intellij_generate
 
-Inspired by [pants idea](https://github.com/pantsbuild/pants/blob/d30cca1e0ecb9cc0e1b7e2cd0ff6e7e077e62a52/src/python/pants/backend/project_info/tasks/idea_gen.py)
+Alpha: rule definitions and behavior may change on short notice.
 
-Primary Goals:
-- plugin-less intellij development
-  - from intellij's point of view it's "just a java project" or (say) "just a scala project"
-- assume a typical maven/gradle-ish directory layout
-  - src/main/java, src/main/test
-  - relatively coarse-grained modules
-- testing: various real-ish scenarios are present in this project, and usable.
+Examines your bazel build and generates a complete set of Intellij project configuration files. This is an alternative 
+approach vs [bazelbuild/intellij](https://github.com/bazelbuild/intellij), and akin to 
+[pants/idea](https://www.pantsbuild.org/intellij.html).
 
-Bazel Target Naming Conventions
+- _`**/*.iml`_: Intellij module files are based on iml templates under your control, to which this rule adds module and 
+jar dependency entries based on examination of your bazel build target relationships.
+- _`.idea/modules.xml`_: Automatically creates the Intellij file used to identify all modules in your project.
+- _`.idea/workspace.xml`_: “component” entries you define will be placed in your workspace.xml file.
+- _`.idea/**/*.xml`_: Intellij project-level files, such as run configurations and source formatting rules, may be 
+committed to your repo and will be placed under the .idea directory, meaning these may be easily shared across a team.
 
-A lot of these targets are repeated across modules, and bazel module scoping
-provides enough namespacing information that it's redundant and arguably
-confusing to repeat the namespace in such target names. This system
-also has the benefits of being consistent horizontally and therefore
-is easily grep-able and so on.
+## Example usage
 
-- main code for module: "lib" (should it be java_lib?)
-- test code for module: "test_lib" (should it be java_test_lib?)
-- executable test tasks: "tests"
-- proto: "the_module_name_proto": the one exception to not over-specifying targets. The practical consequence
-here is that you will have meaningful-looking proto jar dependencies when viewing them in IDE module settings.
-- java proto codegen: "java_proto"
-- grpc: "java_grpc"
-- idea iml module: "iml"
-- idea modules.xml: "modules_xml"
-- idea compiler.xml: "compiler_xml"
-- idea project: "idea_project"
+This repo is split into the [core rules](rules), and a [series of scenarios](scenarios) meant to show how the rules may be typically 
+applied, that also form the basis of the [scenario tests](scenarios/scenario_tests/pytest). There is a README in the 
+root of each scenario with a brief description of its purpose.
 
-CI happen on Google Container Builder, to request access to the [Build History](https://console.cloud.google.com/gcr/builds?project=rules-intellij-generate) and build output, please contact the project maintainers directly, or file a Github Issue requesting access.
+## Background and Motivation
 
-Wishlist
-  - Run targets
-  - Right now, runtime deps are specified as intellij compile deps. ideally we'd use
-    bazel ijar's as compile deps, and bazel runtime deps would become intellij runtime deps.
-    This would need to be different for test deps because intellij doesn't have a distinction
-    between test compile vs test runtime.
-  - Friendlier project setup (that perhaps wraps the .sh setup scripts that are generated)
-  - Faster .sh scripts. I think the cd'ing is the problem here.
+bazel/intellij originates from Google’s internal approach to Intellij integration. It’s based on a plug-in that puts 
+bazel operations at the center of how the IDE does its work.
+
+Many people use this plugin happily and successfully, but its bazel-first philosophy is not without its problems, 
+very well-expressed in 
+[this github issue (recommended reading)](https://github.com/bazelbuild/intellij/issues/179#issuecomment-350295025). 
+Bazel/intellij maintainers state that exploitation
+ of Intellij’s module system is a non-goal, whereas for this project it’s a key goal.
+
+The rules_intellij_generate philosophy sees bazel and Intellij as equal partners interacting at arm’s length. It 
+willingly countenances small compromises away from “bazel purity” so that (for example) the IDE’s code modularity 
+features are useful in development. Intellij should work for teams that also use bazel, in the most efficient and 
+fully-realized manner as possible.
+
+## Features
+
+- Uses bazel project configuration to generate an intellij project during the bazel build run
+- Maps bazel packages to Intellij modules
+- Maps bazel-specified jar dependencies to Intellij module jar library dependencies
+- Integration point is plain old Intellij config files - there’s no Intellij plugin
+- Express any Intellij module configuration/settings via an entry in iml-types.xml
+- Support for distribution, from files in your workspace, of project-level Intellij xml config
+- Reference to bazel build output locations in Intellij configuration possible via template variables
+
+## Usage
+
+Once `intellij_module` targets are defined, and an `intellij_project` target exists, run the `intellij_project`
+target: this generates the intellij configuration files archive for your project, in sandboxed form. You will need
+to run the `install_intellij_files_script`, found under `bazel-bin`, in order for these files to be installed
+in your workspace.
+
+You may want to try this out using the scenarios. Once installed, any scenario should be loadable into Intellij,
+by opening up its directory in the IDE as a new project.
+

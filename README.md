@@ -3,8 +3,8 @@
 Alpha: rule definitions and behavior may change on short notice.
 
 Examines your bazel build and generates a complete set of Intellij project configuration files. This is an alternative 
-approach vs [bazelbuild/intellij](https://github.com/bazelbuild/intellij), and akin to 
-[pants/idea](https://www.pantsbuild.org/intellij.html).
+approach vs [bazelbuild/intellij](https://github.com/bazelbuild/intellij), and akin to the old
+[pants/idea](https://github.com/pantsbuild/pants/blob/d30cca1e0ecb9cc0e1b7e2cd0ff6e7e077e62a52/src/python/pants/backend/project_info/tasks/idea_gen.py) integration.
 
 - _`**/*.iml`_: Intellij module files are based on iml templates under your control, to which this rule adds module and 
 jar dependency entries based on examination of your bazel build target relationships.

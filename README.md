@@ -41,8 +41,10 @@ fully-realized manner as possible.
 - Maps bazel packages to Intellij modules
 - Maps bazel-specified jar dependencies to Intellij module jar library dependencies
 - Integration point is plain old Intellij config files - there’s no Intellij plugin
-- Express any Intellij module configuration/settings via an entry in iml-types.xml
-- Support for distribution, from files in your workspace, of project-level Intellij xml config
+- Express any Intellij module configuration/settings via an entry in iml-types.xml 
+([example](scenarios/iml_types.xml))
+- Support for distribution, from files in your workspace, of project-level Intellij xml config 
+([example](scenarios/intellij_project_files))
 - Reference to bazel build output locations in Intellij configuration possible via template variables
 
 ## Usage

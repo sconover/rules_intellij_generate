@@ -1,0 +1,15 @@
+#!/bin/bash
+
+which fswatch > /dev/null
+
+if [ $? -ne 0 ]; then
+    echo "fswatch not found, please install it via homebrew:"
+    echo "    brew install fswatch"
+    exit 1
+fi
+
+set -e
+
+this_dir=$(dirname $0)
+fswatch -0 --event=OwnerModified "$this_dir/intellij_files" | xargs -0 -n 1 -I {} "$this_dir/install_intellij_files_script"
+

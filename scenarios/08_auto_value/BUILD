@@ -1,4 +1,9 @@
-package(default_visibility = ["//08_auto_value:__subpackages__"])
+package(default_visibility = ["//:__subpackages__"])
+
+load("@rules_intellij_generate//:def.bzl", "intellij_project")
+load("@rules_intellij_generate//:def.bzl", "intellij_module")
+load("@rules_junit5//:def.bzl", "JUNIT5_MINIMAL_DEPS")
+load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 
 # see https://www.kchodorow.com/blog/2016/11/12/using-autovalue-with-bazel/
 java_plugin(
@@ -8,59 +13,36 @@ java_plugin(
     deps = ["@com_google_auto_value//jar"],
 )
 
-load("@rules_intellij_generate//:def.bzl",
-    "intellij_source_java_library",
-    "MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP",
-    "MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP")
-
-intellij_source_java_library(
-    name="lib",
-    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_SOURCE_FOLDER_MAP,
+java_library(
+    name="java_lib",
+    srcs = glob(["src/main/java/**/*.java"]),
     deps=[
-        "@com_google_auto_value//jar",
         ":autovalue_plugin",
-    ]
+
+        "@com_google_auto_value//jar",
+    ],
 )
 
-load("@rules_junit5//:def.bzl", "JUNIT5_MINIMAL_DEPS")
-intellij_source_java_library(
-    name="test_lib",
-    source_folder_to_wildcard_map=MAVEN_STANDARD_JAVA_TEST_FOLDER_MAP,
-    deps=[":lib"] + JUNIT5_MINIMAL_DEPS,
+java_library(
+    name="java_test_lib",
+    srcs = glob(["src/test/java/**/*.java"]),
+    deps=[":java_lib"] + JUNIT5_MINIMAL_DEPS,
 )
 
-load("@rules_intellij_generate//:def.bzl", "intellij_iml")
-intellij_iml(
-    name = "iml",
-    java_source=":lib",
-    test_java_source=":test_lib",
-)
-
-load("@rules_intellij_generate//:def.bzl", "intellij_modules_xml")
-intellij_modules_xml(
-    name = "modules_xml",
-    deps = [":iml"]
-)
-
-load("@rules_intellij_generate//:def.bzl", "intellij_compiler_xml")
-intellij_compiler_xml(
-    name = "compiler_xml",
-    iml_target_to_annotation_profile = {
-      ":iml" : "my_idea_auto_value_annotation_processor_profile",
-    }
-)
-
-load("@rules_intellij_generate//:def.bzl", "intellij_project")
-intellij_project(
-  name="idea_project",
-  intellij_modules_xml=":modules_xml",
-  intellij_compiler_xml=":compiler_xml",
-  visibility=["//:__subpackages__"],
-)
-
-load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 junit5_all_in_package_test(
-    name="tests",
+    name="java_tests",
     java_package="house",
-    runtime_deps=[":test_lib"]
+    runtime_deps=[":java_test_lib"]
+)
+
+intellij_module(name="iml", iml_type="java-maven-style")
+
+intellij_project(
+    name="project_08",
+    deps=[":java_test_lib"],
+    test_lib_label_matchlist=['{"label_name":"java_test_lib"}'],
+    iml_types_file="//:iml_types.xml",
+    project_root_filegroup="//:automatically_placed_intellij_project_files",
+    project_root_filegroup_ignore_prefix="intellij_project_files",
+    modules=[":iml"]
 )

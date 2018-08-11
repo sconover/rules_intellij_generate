@@ -1,0 +1,176 @@
+#!/usr/bin/python
+
+"""
+Read in the intellij file archive, and write out individual intellij config files under the project workspace
+"""
+
+import os
+import sys
+from subprocess import Popen, PIPE
+
+execution_directory = os.getcwd()
+script_directory = os.path.dirname(os.path.realpath(__file__))
+workspace_path = os.path.join(execution_directory, "WORKSPACE")
+rig_sha1_path = os.path.join(execution_directory, ".rig_sha1")
+intellij_files_path = os.path.join(script_directory, "intellij_files")
+
+def get_subcommand_output(call_arr):
+    p = Popen(call_arr, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output, err = p.communicate()
+    if p.returncode != 0:
+        sys.stderr.write("Subcommand unexpectedly failed: %s" % call_arr)
+        sys.exit(1)
+    return output
+
+def read_file(path):
+    f = open(path, "r")
+    content = f.read()
+    f.close()
+    return content
+
+def write_file(path, content):
+    f = open(path, "w")
+    f.write(content)
+    f.close()
+
+if not os.path.isfile(workspace_path):
+    sys.stderr.write("This script must be run from the workspace root, please change to that directory and re-run.\n")
+    sys.exit(1)
+
+if not os.path.isfile(intellij_files_path):
+    sys.stderr.write("Archive of intellij files not found at path: '%s'\n" % intellij_files_path)
+    sys.exit(1)
+
+custom_substitutions = {
+# BEFORE_CUSTOM_VARS
+# _CUSTOM_ENV_VARS_GO_HERE
+# AFTER_CUSTOM_VARS
+}
+
+
+# Execute "bazel info", and transform the variable names in the output into
+# BAZEL_INFO_VARIABLE_NAME style.
+bazel_info = {}
+for line in get_subcommand_output(["bazel", "info"]).splitlines():
+    parts = map(lambda part: part.strip(), line.split(":", 1))
+    key = "BAZEL_INFO_" + parts[0].upper().replace("-", "_")
+    value = parts[1]
+    bazel_info[key] = value
+
+general_substitutions = {}
+general_substitutions.update(custom_substitutions)
+general_substitutions.update(bazel_info)
+
+
+# Determine files to process.
+# If no .rig_sha1 file is in place from the previous run, process all files in the archive.
+# If there is a .rig_sha1, load its contents, and determine what files have changed from the
+# previous run, and only process those different files.
+sha_section, file_contents_section = read_file(intellij_files_path).split("__SHA1_DIVIDER__\n", 1)
+sha1_lines = set(sha_section.splitlines())
+
+if os.path.isfile(rig_sha1_path):
+    print("Will only write intellij files that differ from previous run")
+    existing_sha1_lines = set(read_file(rig_sha1_path).splitlines())
+    sha1_lines = existing_sha1_lines.symmetric_difference(sha1_lines)
+
+files_to_process = sorted(set(map(lambda l: l.split(" ", 1)[1].strip(), sha1_lines)))
+if len(files_to_process) > 0:
+    print("Writing %d intellij files..." % len(files_to_process))
+else:
+    print("No intellij files differ from previous run")
+
+relative_file_path_to_content = {}
+for entry in file_contents_section.split("__FILE_DIVIDER__\n"):
+    relative_path, content = entry.split("\n", 1)
+    relative_file_path_to_content[relative_path] = content
+
+files_to_process = filter(lambda f: f in relative_file_path_to_content.keys(), files_to_process)
+
+
+dot_idea_dir = os.path.dirname(filter(lambda f: f.endswith(".idea/modules.xml"), relative_file_path_to_content.keys())[0])
+
+
+# Split the workspace.xml file into one workspace file per "component" in the file.
+# This will create files like .idea/workspace.RunManager.xml
+intellij_workspace_xml_path = os.path.join(dot_idea_dir, "workspace.xml")
+if os.path.isfile(intellij_workspace_xml_path):
+    workspace_fragment_to_content = {}
+    current_fragment_name = None
+    current_content = ""
+    for line in read_file(intellij_workspace_xml_path).splitlines():
+        if "<component name=" in line and "/>" in line:
+            current_fragment_name = None
+            current_content = ""
+            continue
+
+        if "<component name=" in line:
+            current_fragment_name = line.split("name=\"", 1)[1].split("\"")[0]
+
+        if current_fragment_name != None:
+            current_content += line + "\n"
+
+        if "</component>" in line:
+            workspace_fragment_to_content[current_fragment_name] = current_content
+            current_fragment_name = None
+            current_content = ""
+
+    if len(current_content) > 0:
+        workspace_fragment_to_content[current_fragment_name] = current_content
+
+    for workspace_fragment in workspace_fragment_to_content:
+        write_file(
+            os.path.join(dot_idea_dir, "workspace.%s.fragment.xml" % workspace_fragment),
+            workspace_fragment_to_content[workspace_fragment])
+
+
+# Write out files to their repective relative paths under the bazel workspace.
+# Of note:
+# - .iml files will be placed in their bazel package-originating directories,
+#   i.e. alongside the BUILD file
+# - other files are written under .idea, such as .idea/workspace.xml, .idea/modules.xml, etc
+# - template variables are replaced here. for example,
+#     ${BAZEL_INFO_EXECUTION_ROOT}
+#   would be replace with the "execution root" value found by running "bazel info".
+#   This is how, for example, jars that bazel places in its output directories are available
+#   within intellij config files.
+for relative_path in files_to_process:
+    relative_dir = os.path.dirname(relative_path)
+
+    all_substitutions = {}
+    all_substitutions.update(general_substitutions)
+    all_substitutions["BAZEL_PACKAGE_GENFILES"] = \
+        "%s/%s" % (general_substitutions["BAZEL_INFO_BAZEL_GENFILES"], relative_dir)
+
+    file_content = relative_file_path_to_content[relative_path]
+    for k in all_substitutions:
+        file_content = file_content.replace("${%s}" % k, all_substitutions[k])
+
+    print("Writing intellij file '%s' (%d bytes)" % (relative_path, len(file_content)))
+
+    if not os.path.isdir(relative_dir) and len(relative_dir) > 0:
+        os.makedirs(relative_dir)
+
+    write_file(relative_path, file_content)
+
+
+# In the previous step, workspace.xml fragment files may have been written out as well.
+# This would have over-written workspace xml fragments already extracted.
+# Re-compose workspace.xml by gluing together the contents of the fragment files.
+workspace_xml_fragments = []
+for path in os.listdir(dot_idea_dir):
+    if path.startswith("workspace.") and path.endswith(".fragment.xml"):
+        workspace_xml_fragments.append(read_file(os.path.join(dot_idea_dir, path)))
+intellij_workspace_xml_content = \
+    "\n".join([
+                  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                  "<project version=\"4\">"] +
+              workspace_xml_fragments +
+              ["</project>"])
+
+print("Writing intellij workspace file '%s' (%d bytes)" % (intellij_workspace_xml_path, len(intellij_workspace_xml_content)))
+write_file(intellij_workspace_xml_path, intellij_workspace_xml_content)
+
+# Finally, "remember" the digests of the files from this archive, in .rig_sha1
+print("Saving intellij file sha1's in '%s'" % rig_sha1_path)
+write_file(rig_sha1_path, sha_section)

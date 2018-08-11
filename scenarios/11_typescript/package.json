@@ -1,0 +1,22 @@
+{
+  "name": "scenarios",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/echo_main.ts",
+  "dependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.5",
+    "long": "^4.0.0",
+    "ts-node": "^7.0.0",
+    "typescript": "^3.0.1"
+  },
+  "devDependencies": {
+    "mocha": "5.2.0",
+    "chai": "4.1.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

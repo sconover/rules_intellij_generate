@@ -432,10 +432,10 @@ def composers_to_xmls(bazel_package_to_composer, root_package):
 
 def xmls_to_sha1s(iml_path_to_content):
     """Calculate the sha1 hex digest of each xml document"""
-    sha1_to_iml_path = {}
+    iml_path_to_sha1 = {}
     for iml_path in iml_path_to_content:
-        sha1_to_iml_path[hashlib.sha1(iml_path_to_content[iml_path]).hexdigest()] = iml_path
-    return sha1_to_iml_path
+        iml_path_to_sha1[iml_path] = hashlib.sha1(iml_path_to_content[iml_path]).hexdigest()
+    return iml_path_to_sha1
 
 def file_path_under_dot_idea_directory(relative_path, root_bazel_package):
     return ".idea/%s" % relative_path if root_bazel_package == "" \
@@ -467,11 +467,13 @@ def load_workspace_fragments(workspace_xml_fragment_paths, root_bazel_package):
 def make_intellij_files_archive(iml_path_to_sha1, relative_path_to_xml_content):
     """Final assembly of the intellij archives file, which contains all intellij files produced by this script,
     (relative path and content), concatenated together, with sha1's of each file at the top of the archive."""
-    sorted_iml_path_to_sha1 = sorted(iml_path_to_sha1.items(), key=lambda t: t[1])
+
+    sorted_iml_path_to_sha1 = sorted(iml_path_to_sha1.items(), key=lambda t: t[0])
     iml_sha1_entries = map(lambda t: " ".join(t), sorted_iml_path_to_sha1)
 
     sorted_iml_path_to_content = sorted(relative_path_to_xml_content.items(), key=lambda t: t[0])
     iml_content_entries = map(lambda t: "%s\n%s" % (t[0], t[1]), sorted_iml_path_to_content)
+
     return "\n".join(iml_sha1_entries) + "\n__SHA1_DIVIDER__\n" + "\n__FILE_DIVIDER__\n".join(iml_content_entries)
 
 def process_main(project_data_json_path, intellij_files_archive_output_path):

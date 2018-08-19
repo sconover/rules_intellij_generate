@@ -74,7 +74,7 @@ if os.path.isfile(rig_sha1_path):
     existing_sha1_lines = set(read_file(rig_sha1_path).splitlines())
     sha1_lines = existing_sha1_lines.symmetric_difference(sha1_lines)
 
-files_to_process = sorted(set(map(lambda l: l.split(" ", 1)[1].strip(), sha1_lines)))
+files_to_process = sorted(set(map(lambda l: l.split(" ", 1)[0].strip(), sha1_lines)))
 if len(files_to_process) > 0:
     print("Writing %d intellij files..." % len(files_to_process))
 else:

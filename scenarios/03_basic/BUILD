@@ -7,6 +7,8 @@ intellij_project(
         "//03_basic/dolphin:java_test_lib",
         "//03_basic/gorilla:java_test_lib",
         "//03_basic/human:java_test_lib",
+        "//03_basic/primate:java_test_lib",
+        "//03_basic/mammal:java_test_lib",
     ],
     test_lib_label_matchlist=['{"label_name":"java_test_lib"}'],
     iml_types_file="//:iml_types.xml",

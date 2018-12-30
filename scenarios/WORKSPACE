@@ -1,5 +1,7 @@
 workspace(name="rules_intellij_generate_scenarios")
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 maven_jar(name="com_google_guava_guava",         artifact="com.google.guava:guava:19.0")
 maven_jar(name="com_google_auto_value",          artifact="com.google.auto.value:auto-value:1.5.2")
 
@@ -49,51 +51,50 @@ grpc_java_repositories(
 )
 
 
-# see https://github.com/bazelbuild/rules_nodejs
+# # see https://github.com/bazelbuild/rules_nodejs
 
-# rules_nodejs depends on bazel_skylib
-# Bazel doesn't support transitive workspace deps so you must copy this.
-http_archive(
-    name = "bazel_skylib",
-    url = "https://github.com/bazelbuild/bazel-skylib/archive/0.3.1.zip",
-    strip_prefix = "bazel-skylib-0.3.1",
-    sha256 = "95518adafc9a2b656667bbf517a952e54ce7f350779d0dd95133db4eb5c27fb1",
-)
+# # rules_nodejs depends on bazel_skylib
+# # Bazel doesn't support transitive workspace deps so you must copy this.
+# http_archive(
+#     name = "bazel_skylib",
+#     url = "https://github.com/bazelbuild/bazel-skylib/archive/0.3.1.zip",
+#     strip_prefix = "bazel-skylib-0.3.1",
+#     sha256 = "95518adafc9a2b656667bbf517a952e54ce7f350779d0dd95133db4eb5c27fb1",
+# )
 
-git_repository(
-    name = "build_bazel_rules_nodejs",
-    remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.11.3", # check for the latest tag when you install
-)
+# git_repository(
+#     name = "build_bazel_rules_nodejs",
+#     remote = "https://github.com/bazelbuild/rules_nodejs.git",
+#     tag = "0.11.3", # check for the latest tag when you install
+# )
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
-load("@build_bazel_rules_nodejs//:defs.bzl", "npm_install")
+# load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
+# load("@build_bazel_rules_nodejs//:defs.bzl", "npm_install")
 
 
-# 10_javascript
-node_repositories(
-    package_json = ["//10_javascript:package.json"],
-    node_version = "8.11.1"
-)
-npm_install(
-    name = "10_javascript_npm",
-    package_json = "//10_javascript:package.json",
-    package_lock_json = "//10_javascript:package-lock.json",
-)
+# # 10_javascript
+# node_repositories(
+#     package_json = ["//10_javascript:package.json"],
+#     node_version = "8.11.1"
+# )
+# npm_install(
+#     name = "10_javascript_npm",
+#     package_json = "//10_javascript:package.json",
+#     package_lock_json = "//10_javascript:package-lock.json",
+# )
 
-# 11_typescript
-node_repositories(
-    package_json = ["//11_typescript:package.json"],
-    node_version = "8.11.1"
-)
-npm_install(
-    name = "11_typescript_npm",
-    package_json = "//11_typescript:package.json",
-    package_lock_json = "//11_typescript:package-lock.json",
-)
+# # 11_typescript
+# node_repositories(
+#     package_json = ["//11_typescript:package.json"],
+#     node_version = "8.11.1"
+# )
+# npm_install(
+#     name = "11_typescript_npm",
+#     package_json = "//11_typescript:package.json",
+#     package_lock_json = "//11_typescript:package-lock.json",
+# )
 
 # 12_kotlin
-kotlin_release_version="1.2.30"
 rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
 
 http_archive(
@@ -104,5 +105,62 @@ http_archive(
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories(kotlin_release_version=kotlin_release_version)
+kotlin_repositories()
 kt_register_toolchains()
+
+
+# 15_typescript_multi_tsc
+rules_multi_tsc_version = "03b27d61f20929f0d7b619e3f18ca63066b72be0"
+
+http_archive(
+    name = "rules_multi_tsc",
+    urls = ["https://github.com/sconover/rules_multi_tsc/archive/%s.zip" % rules_multi_tsc_version],
+    type = "zip",
+    strip_prefix = "rules_multi_tsc-%s/rules" % rules_multi_tsc_version
+)
+
+http_archive(
+    name = "node",
+    url = "https://nodejs.org/dist/v10.14.2/node-v10.14.2-darwin-x64.tar.gz",
+    strip_prefix = "node-v10.14.2-darwin-x64",
+    build_file_content="""
+exports_files([
+    "bin/node",
+])
+"""
+)
+
+new_local_repository(
+    name="node_modules_archive",
+    path="15_typescript_multi_tsc",
+    build_file_content="""
+exports_files([
+    "node_modules/typescript/lib/tsc.js",
+    "node_modules/rollup/bin/rollup",
+    "node_modules/uglify-es/bin/uglifyjs",
+])
+
+filegroup(
+    name = "default_typings",
+    srcs = glob([
+        "node_modules/@types/**",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(name = "long", srcs = glob(["node_modules/long/**/*",]), visibility = ["//visibility:public"])
+filegroup(name = "bson", srcs = glob(["node_modules/bson/**/*",]), visibility = ["//visibility:public"])
+filegroup(name = "buffer", srcs = glob(["node_modules/buffer/**/*",]), visibility = ["//visibility:public"])
+
+filegroup(
+    name = "rollup_plugins",
+    srcs = glob([
+        "node_modules/rollup-plugin-commonjs/**/*",
+        "node_modules/rollup-plugin-node-resolve/**/*",
+        "node_modules/rollup-plugin-alias/**/*",
+        "node_modules/rollup-plugin-includepaths/**/*",
+    ]),
+    visibility = ["//visibility:public"],
+)
+"""
+)

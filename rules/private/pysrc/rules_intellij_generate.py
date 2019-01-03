@@ -167,7 +167,7 @@ def insert_jar_dep_into_iml_element_as_module_library(iml_element, relative_jar_
                 <JAVADOC />
                 <SOURCES />
               </library>
-            </orderEntry> 
+            </orderEntry>
         """ % (scope_attribute, relative_jar_path.strip()))
 
     component_element = iml_element.find("./component[@name='NewModuleRootManager']")
@@ -464,7 +464,7 @@ def load_workspace_fragments(workspace_xml_fragment_paths, root_bazel_package):
         relative_path_to_content[relative_path] = workspace_fragment_file_to_content[f]
     return relative_path_to_content
 
-def make_intellij_files_archive(iml_path_to_sha1, relative_path_to_xml_content):
+def make_intellij_files_archive(iml_path_to_sha1, relative_path_to_xml_content, symlinks):
     """Final assembly of the intellij archives file, which contains all intellij files produced by this script,
     (relative path and content), concatenated together, with sha1's of each file at the top of the archive."""
 
@@ -474,7 +474,11 @@ def make_intellij_files_archive(iml_path_to_sha1, relative_path_to_xml_content):
     sorted_iml_path_to_content = sorted(relative_path_to_xml_content.items(), key=lambda t: t[0])
     iml_content_entries = map(lambda t: "%s\n%s" % (t[0], t[1]), sorted_iml_path_to_content)
 
-    return "\n".join(iml_sha1_entries) + "\n__SHA1_DIVIDER__\n" + "\n__FILE_DIVIDER__\n".join(iml_content_entries)
+    symlinks_entries = map(lambda k: "%s|%s" % (k, symlinks[k]), sorted(symlinks.keys()))
+
+    return "\n".join(iml_sha1_entries) + "\n__SHA1_DIVIDER__\n" + \
+        "\n__FILE_DIVIDER__\n".join(iml_content_entries) + \
+        "\n__SYMLINK_DIVIDER__\n" + "\n".join(symlinks_entries)
 
 def process_main(project_data_json_path, intellij_files_archive_output_path):
     project_data = json.loads(read_file(project_data_json_path))
@@ -529,7 +533,8 @@ def process_main(project_data_json_path, intellij_files_archive_output_path):
         intellij_files_archive_output_path,
         make_intellij_files_archive(
             xmls_to_sha1s(archive_content),
-            archive_content))
+            archive_content,
+            project_data["symlinks"]))
 
 # ...this is invoked from within intellij_project.bzl
 if __name__ == '__main__':

@@ -1,0 +1,17 @@
+{
+  "name": "ts-example",
+  "version": "0.0.0",
+  "scripts": {},
+  "private": true,
+  "dependencies": {
+    "long": "4.0.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "5.2.5",
+    "@types/chai": "4.1.7",
+    "mocha": "5.2.0",
+    "chai": "4.1.0",
+    "typescript": "3.2.2",
+    "ts-node": "7.0.1"
+  }
+}

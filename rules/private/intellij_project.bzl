@@ -50,6 +50,7 @@ ProjectData = provider(
         "project_root_files_paths",
         "project_root_files_path_ignore_prefix",
         "root_bazel_package",
+        "symlinks",
         "test_lib_label_matchlist",
         "workspace_xml_fragment_paths",
     ]
@@ -229,6 +230,7 @@ def _impl(ctx):
         project_root_files_paths = paths,
         project_root_files_path_ignore_prefix = ctx.attr.project_root_filegroup_ignore_prefix,
         workspace_xml_fragment_paths = workspace_xml_fragment_paths,
+        symlinks = ctx.attr.symlinks
     )
 
     # this json file is the "input" to the python transformation executable action
@@ -418,6 +420,9 @@ intellij_project = rule(
                                    doc="""
                                    intellij_module targets must be added here in order to appear in the intellij project.
                                    """),
+
+        "symlinks": attr.string_dict(default={}),
+
         "tools": attr.label_list(default=[], allow_files=True),
     },
 

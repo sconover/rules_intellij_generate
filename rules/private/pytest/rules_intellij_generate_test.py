@@ -482,9 +482,9 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 
     def test_xmls_to_sha1s(self):
         self.assertEqual(
-            {"13e190a16a3937a346f2f2104210a9d0af775cec": "foo.iml",
-             "4d18aab61d7c4874a70ff4750f1e066291fff399": "bar.iml"},
-            xmls_to_sha1s({"foo.iml": "<foo/>", "bar.iml": "<bar/>"}))
+            {"bar.iml": "4d18aab61d7c4874a70ff4750f1e066291fff399",
+             "foo.iml": "13e190a16a3937a346f2f2104210a9d0af775cec"},
+            xmls_to_sha1s({"bar.iml": "<bar/>", "foo.iml": "<foo/>"}))
 
     def test_intellij_files_archive(self):
         expected_archive_contents = """
@@ -496,13 +496,16 @@ bar.iml
 __FILE_DIVIDER__
 foo.iml
 <foo />
+__SYMLINK_DIVIDER__
+some_execroot_file|symlink_under_project_file
 """.strip()
         self.assertEqual(
             expected_archive_contents,
             make_intellij_files_archive(
                 {"sha1foo": "foo.iml",
                  "sha1bar": "bar.iml"},
-                {"foo.iml": "<foo />", "bar.iml": "<bar />"}))
+                {"foo.iml": "<foo />", "bar.iml": "<bar />"},
+                {"some_execroot_file":"symlink_under_project_file"}))
 
 
 # TODO: test that workspace xml fragment paths are relative to .idea

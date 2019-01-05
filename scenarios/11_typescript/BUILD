@@ -2,48 +2,40 @@ package(default_visibility = ["//:__subpackages__"])
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
 load("@rules_intellij_generate//:def.bzl", "intellij_module")
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_test")
 
-nodejs_binary(
-    name = "echo_main",
+filegroup(name = "src_file", srcs = ["src/eights.ts"])
+filegroup(name = "test_file", srcs = ["test/eights-test.ts"])
+
+sh_library(
+    name = "ts_lib",
+    srcs = [":src_file"],
     data = [
-        "@11_typescript_npm//:node_modules",
-        "src/echo_main.ts",
+        "@node//:bin/node",
+        "@node_modules_11_typescript//:all_files",
+        ":src_file",
     ],
-    entry_point = "rules_intellij_generate_scenarios/11_typescript/src/echo_main.ts",
-    node_modules = "@11_typescript_npm//:node_modules",
-    install_source_map_support = False,
 )
-
-filegroup(name = "echo_src", srcs = ["src/echo.ts"])
-filegroup(name = "echo_test_src", srcs = ["test/echo_test.ts"])
-filegroup(name = "mocha", srcs = [
-    "@11_typescript_npm//:node_modules/@types/mocha/index.d.ts",
-    "@11_typescript_npm//:node_modules/.bin/_mocha",
-    "@11_typescript_npm//:node_modules/mocha/index.js",
-    "@11_typescript_npm//:node_modules/mocha/mocha.js",
-])
 
 sh_test(
-    name = "echo_test",
-    srcs = [":run_mocha_ts_test.sh"],
+    name = "ts_test",
+    srcs = [":run_single_mocha_test.sh"],
+    deps = [":ts_lib"],
     args = [
-        "11_typescript",
-        "external/11_typescript_npm/node_modules",
-        "$(location @nodejs//:bin/node)",
-        "$(location @11_typescript_npm//:node_modules/.bin/_mocha)",
-        "$(location :echo_test_src)"
+        "external/node_modules_11_typescript/node_modules",
+        "$(location @node//:bin/node)",
+        "$(location @node_modules_11_typescript//:node_modules/mocha/bin/mocha)",
+        "$(location :test_file)"
     ],
     data = [
-        "@nodejs//:bin/node",
-        "@nodejs//:node_runfiles",
-        "@11_typescript_npm//:node_modules/.bin/_mocha",
-        ":mocha",
-        ":echo_src",
-        ":echo_test_src",
+        "@node//:bin/node",
+        "@node_modules_11_typescript//:all_files",
+        "@node_modules_11_typescript//:node_modules/mocha/bin/mocha",
+        ":src_file",
+        ":test_file",
     ],
 )
+
+intellij_module(name="iml", iml_type="web-simple")
 
 filegroup(
     name="automatically_placed_intellij_project_files_for_ts",
@@ -55,14 +47,17 @@ filegroup(
     srcs=glob(["workspace_xml_fragments/*.xml"])
 )
 
-intellij_module(name="iml", iml_type="web-simple")
-
 intellij_project(
-    name="project_11",
-    deps=[":echo_main"],
+    name="project_10",
     iml_types_file="//:iml_types.xml",
     project_root_filegroup=":automatically_placed_intellij_project_files_for_ts",
     project_root_filegroup_ignore_prefix="11_typescript/intellij_project_files",
     workspace_xml_fragments_filegroup=":workspace_xml_fragments",
-    modules=[":iml"]
+    deps=[":ts_lib"],
+    modules=[":iml"],
+    symlinks={
+      "${BAZEL_INFO_EXECUTION_ROOT}/external/node_modules_11_typescript/node_modules": "11_typescript/node_modules",
+      "${BAZEL_INFO_EXECUTION_ROOT}/external/node_modules_11_typescript/package.json": "11_typescript/package.json",
+      "${BAZEL_INFO_EXECUTION_ROOT}/external/node_modules_11_typescript/package-lock.json": "11_typescript/package-lock.json",
+    },
 )

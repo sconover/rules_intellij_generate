@@ -66,7 +66,7 @@ general_substitutions.update(bazel_info)
 # If no .rig_sha1 file is in place from the previous run, process all files in the archive.
 # If there is a .rig_sha1, load its contents, and determine what files have changed from the
 # previous run, and only process those different files.
-sha_section, file_contents_section = read_file(intellij_files_path).split("__SHA1_DIVIDER__\n", 1)
+sha_section, rest_of_file = read_file(intellij_files_path).split("__SHA1_DIVIDER__\n", 1)
 sha1_lines = set(sha_section.splitlines())
 
 if os.path.isfile(rig_sha1_path):
@@ -80,6 +80,8 @@ if len(files_to_process) > 0:
 else:
     print("No intellij files differ from previous run")
 
+file_contents_section, symlink_section = rest_of_file.split("__SYMLINK_DIVIDER__\n", 1)
+
 relative_file_path_to_content = {}
 for entry in file_contents_section.split("__FILE_DIVIDER__\n"):
     relative_path, content = entry.split("\n", 1)
@@ -87,9 +89,28 @@ for entry in file_contents_section.split("__FILE_DIVIDER__\n"):
 
 files_to_process = filter(lambda f: f in relative_file_path_to_content.keys(), files_to_process)
 
+symlinks = {}
+symlink_entries = map(lambda line: line.split("|",1), symlink_section.split("\n"))
+for symlink_entry in symlink_entries:
+    symlinks[symlink_entry[0]] = symlink_entry[1]
 
 dot_idea_dir = os.path.dirname(filter(lambda f: f.endswith(".idea/modules.xml"), relative_file_path_to_content.keys())[0])
 
+# Check for symlink existence and content, create/overwrite if incorrect
+for symlink_src in symlinks:
+    symlink_dest = symlinks[symlink_src]
+
+    for k in general_substitutions:
+        symlink_src = symlink_src.replace("${%s}" % k, general_substitutions[k])
+        symlink_dest = symlink_dest.replace("${%s}" % k, general_substitutions[k])
+
+    if os.path.islink(symlink_dest) and os.readlink(symlink_dest) == symlink_src:
+        continue
+
+    if (os.path.islink(symlink_dest) or os.path.isfile(symlink_dest)) and os.readlink(symlink_dest) != symlink_src:
+        os.remove(symlink_dest)
+
+    os.symlink(symlink_src, symlink_dest)
 
 # Split the workspace.xml file into one workspace file per "component" in the file.
 # This will create files like .idea/workspace.RunManager.xml

@@ -1,4 +1,0 @@
-<component name="PropertiesComponent">
-  <property name="nodejs.mocha.mocha_node_package_dir" value="$PROJECT_DIR$/node_modules/mocha" />
-  <property name="nodejs_package_manager_path" value="$PROJECT_DIR$/node_modules" />
-</component>

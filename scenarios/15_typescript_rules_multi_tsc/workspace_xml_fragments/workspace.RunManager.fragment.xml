@@ -37,9 +37,12 @@
     <pass-parent-env>true</pass-parent-env>
     <envs>
       <env name="NODE_PATH" value="$PROJECT_DIR$/node_modules"/>
+      <!-- see https://github.com/TypeStrong/ts-node/issues/561#issuecomment-375836931
+               https://www.sitepoint.com/community/t/ts-node-how-to-use-tsconfig-paths-with-node-modules/300468/6 -->
+      <env name="TS_NODE_PROJECT" value="$PROJECT_DIR$/tsconfig.json"/>
     </envs>
     <ui>tdd</ui>
-    <extra-mocha-options>--require ts-node/register</extra-mocha-options>
+    <extra-mocha-options>--require ts-node/register --require tsconfig-paths/register</extra-mocha-options>
     <test-kind>DIRECTORY</test-kind>
     <test-directory/>
     <recursive>false</recursive>

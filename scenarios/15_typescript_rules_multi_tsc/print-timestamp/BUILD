@@ -5,7 +5,7 @@ load("@rules_intellij_generate//:def.bzl", "intellij_module")
 
 tsc(
     name="tsc",
-    srcs=glob(["*.ts"]),
+    srcs=glob(["src/*.ts"]),
     deps=[
       "@node_modules_15_typescript_rules_multi_tsc//:default_typings",
       "//15_typescript_rules_multi_tsc/long-gen:tsc",

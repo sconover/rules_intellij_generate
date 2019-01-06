@@ -1,5 +1,5 @@
 import * as Long from "long"
-import {longGen} from "../long-gen"
+import {longGen} from "lgen/long-gen"
 import {assert} from "chai"
 import "mocha" // this MUST be imported or ts compilation will fail because mocha won't be aware of the mocha types
 

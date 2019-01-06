@@ -22,6 +22,7 @@
     "rollup-plugin-node-resolve": "3.4.0",
     "rollup-plugin-commonjs": "9.2.0",
     "rollup-plugin-includepaths": "0.2.3",
-    "uglify-es": "3.3.9"
+    "uglify-es": "3.3.9",
+    "tsconfig-paths": "3.7.0"
   }
 }

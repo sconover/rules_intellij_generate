@@ -15,6 +15,11 @@
     "outDir": "../whatever",
     "baseUrl": ".",
     "skipDefaultLibCheck": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "lgen/*": [
+        "long-gen/src/*"
+      ]
+    }
   }
 }

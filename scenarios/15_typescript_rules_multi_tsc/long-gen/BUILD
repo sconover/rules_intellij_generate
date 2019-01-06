@@ -5,7 +5,8 @@ load("@rules_intellij_generate//:def.bzl", "intellij_module")
 
 tsc(
     name="tsc",
-    srcs=glob(["*.ts"]),
+    ts_path="lgen",
+    srcs=glob(["src/*.ts"]),
     deps=[
       "@node_modules_15_typescript_rules_multi_tsc//:default_typings",
     ],
@@ -15,7 +16,7 @@ tsc(
     tsconfig_json="//15_typescript_rules_multi_tsc:tsconfig.json",
 )
 
-filegroup(name = "src_file", srcs = ["long-gen.ts"])
+filegroup(name = "src_file", srcs = ["src/long-gen.ts"])
 filegroup(name = "test_file", srcs = ["test/long-gen-test.ts"])
 
 sh_library(
@@ -35,11 +36,13 @@ sh_test(
     args = [
         "external/node_modules_15_typescript_rules_multi_tsc/node_modules",
         "$(location @node//:bin/node)",
+        "$(location //15_typescript_rules_multi_tsc:tsconfig.json)",
         "$(location @node_modules_15_typescript_rules_multi_tsc//:node_modules/mocha/bin/mocha)",
         "$(location :test_file)"
     ],
     data = [
         "@node//:bin/node",
+        "//15_typescript_rules_multi_tsc:tsconfig.json",
         "@node_modules_15_typescript_rules_multi_tsc//:all_files",
         "@node_modules_15_typescript_rules_multi_tsc//:node_modules/mocha/bin/mocha",
         ":src_file",

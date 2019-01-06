@@ -90,7 +90,7 @@ for entry in file_contents_section.split("__FILE_DIVIDER__\n"):
 files_to_process = filter(lambda f: f in relative_file_path_to_content.keys(), files_to_process)
 
 symlinks = {}
-symlink_entries = map(lambda line: line.split("|",1), symlink_section.split("\n"))
+symlink_entries = map(lambda line: line.split("|",1), filter(lambda l:len(l)>0, symlink_section.split("\n")))
 for symlink_entry in symlink_entries:
     symlinks[symlink_entry[0]] = symlink_entry[1]
 

@@ -8,8 +8,6 @@ from s06_protobuf_messages_test import S06ProtobufMessagesTest
 from s07_grpc_test import S07GrpcTest
 from s08_auto_value_test import S08AutoValueTest
 from s09_python_test import S09PythonTest
-from s10_javascript_test import S10JavascriptTest
-from s11_typescript_test import S11TypescriptTest
 from s12_kotlin_test import S12KotlinTest
 from s13_minor_features_test import S13MinorFeaturesTest
 from s14_all_dependency_types_test import S14AllDependencyTypesTest
@@ -26,8 +24,6 @@ if __name__ == '__main__':
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S08AutoValueTest))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S08AutoValueTest))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S09PythonTest))
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S10JavascriptTest))
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S11TypescriptTest))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S12KotlinTest))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S13MinorFeaturesTest))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(S14AllDependencyTypesTest))

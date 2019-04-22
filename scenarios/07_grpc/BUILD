@@ -1,6 +1,6 @@
 package(default_visibility = ["//:__subpackages__"])
 
-load("@grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 load("@rules_junit5//:def.bzl", "JUNIT5_MINIMAL_DEPS")
 load("@rules_junit5//:def.bzl", "junit5_all_in_package_test")
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
@@ -48,8 +48,8 @@ java_library(
         ":java_proto",
         ":java_grpc",
 
-        "@grpc_java//stub",
-        "@com_google_protobuf_java//:protobuf_java",
+        "@io_grpc_grpc_java//stub",
+        "@com_google_protobuf//:protobuf_java",
     ]
 )
 
@@ -60,8 +60,8 @@ java_library(
         ":java_lib",
         ":java_proto",
 
-        "@grpc_java//stub",
-        "@com_google_protobuf_java//:protobuf_java",
+        "@io_grpc_grpc_java//stub",
+        "@com_google_protobuf//:protobuf_java",
     ] + JUNIT5_MINIMAL_DEPS,
 )
 

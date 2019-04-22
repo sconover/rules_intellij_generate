@@ -2,6 +2,7 @@ import unittest
 from scenario_test_support import *
 
 class S12KotlinTest(unittest.TestCase):
+    maxDiff = None
 
     archive = load_archive("12_kotlin/intellij_files")
 
@@ -16,14 +17,7 @@ class S12KotlinTest(unittest.TestCase):
     def test_source_folders(self):
         expected = [
             "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_google_guava_guava/jar/guava-19.0.jar!/",
-
-            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-compiler.jar!/",
-            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-reflect.jar!/",
             "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-runtime.jar!/",
-            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-script-runtime.jar!/",
-            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar!/",
-            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar!/",
-            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar!/",
         ]
 
         self.assertEqual(expected, find_all_plain_jar_libraries(self.child_iml_content))

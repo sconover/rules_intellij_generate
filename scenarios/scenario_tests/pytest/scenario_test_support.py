@@ -36,7 +36,10 @@ def generated_file_path(relative_path):
 def load_archive(intellij_files_archive_path):
     intellij_files_archive_path = generated_file_path(intellij_files_archive_path)
 
-    entries = read_file(intellij_files_archive_path).split("__SHA1_DIVIDER__\n", 1)[1].split("\n__FILE_DIVIDER__\n")
+    entries = read_file(intellij_files_archive_path) \
+        .split("__SYMLINK_DIVIDER__\n", 1)[0] \
+        .split("__SHA1_DIVIDER__\n", 1)[1] \
+        .split("\n__FILE_DIVIDER__\n")
 
     relative_path_to_content = {}
     for entry in entries:

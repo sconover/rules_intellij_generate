@@ -66,7 +66,7 @@ http_archive(
 git_repository(
     name = "build_bazel_rules_nodejs",
     remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.11.3", # check for the latest tag when you install
+    tag = "0.27.12", # 2019-04-09. check for the latest tag when you install
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
@@ -129,8 +129,7 @@ filegroup(
 )
 
 # 12_kotlin
-kotlin_release_version="1.2.30"
-rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
+rules_kotlin_version = "59dc7473c777b5054e91c1af6b95ed0ecbdc0ace" # 2019-04-01
 
 http_archive(
     name = "io_bazel_rules_kotlin",
@@ -140,7 +139,7 @@ http_archive(
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories(kotlin_release_version=kotlin_release_version)
+kotlin_repositories()
 kt_register_toolchains()
 
 # 15_typescript_rules_multi_tsc

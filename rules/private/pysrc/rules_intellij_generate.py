@@ -79,7 +79,7 @@ def xml_indent(elem, level=0, is_last=True):
     return elem
 
 def convert_xml_element_to_pretty_printed_xml_string(element):
-    return ET.tostring(xml_indent(element), encoding="UTF-8", method="xml")
+    return ET.tostring(xml_indent(element), encoding="UTF-8", method="xml").decode()
 
 def check_for_valid_declared_intellij_module(declared_intellij_module):
     check_state("bazel_package" in declared_intellij_module,
@@ -210,14 +210,14 @@ def insert_all_jar_libraries(bazel_package_to_iml_composer,
       otherwise they are added with no type, meaning they become "compile"-type jar libraries
     """
 
-    managed_by_build_tool_matchers = map(lambda m: JarDependencyMatcher(m), managed_by_build_tool_label_matchlist)
+    managed_by_build_tool_matchers = list(map(lambda m: JarDependencyMatcher(m), managed_by_build_tool_label_matchlist))
     def is_managed_by_build_tool(jar_dep):
         for m in managed_by_build_tool_matchers:
             if m.matches(jar_dep):
                 return True
         return False
 
-    test_lib_matchers = map(lambda m: JarDependencyMatcher(m), test_lib_label_matchlist)
+    test_lib_matchers = list(map(lambda m: JarDependencyMatcher(m), test_lib_label_matchlist))
     def is_test_lib(jar_dep):
         for m in test_lib_matchers:
             if m.matches(jar_dep):
@@ -370,7 +370,7 @@ def convert_bazel_package_deps_to_intellij_module_deps(package_to_depends_on_pac
 
 def insert_bazel_package_dep_into_iml_element_as_module_dep(iml_element, module_name):
     """Create a module dependency xml entry in an intellij module xml element, for the module name"""
-    order_entry_element = parse_xml("<orderEntry module-name=\"%s\" type=\"module\"/>" % module_name)
+    order_entry_element = parse_xml("<orderEntry module-name=\"%s\" type=\"module\" exported=\"\"/>" % module_name)
 
     component_element = iml_element.find("./component[@name='NewModuleRootManager']")
     check_state(component_element != None, "/module/component not found when adding package dep '%s'" % module_name)
@@ -434,7 +434,7 @@ def xmls_to_sha1s(iml_path_to_content):
     """Calculate the sha1 hex digest of each xml document"""
     iml_path_to_sha1 = {}
     for iml_path in iml_path_to_content:
-        iml_path_to_sha1[iml_path] = hashlib.sha1(iml_path_to_content[iml_path]).hexdigest()
+        iml_path_to_sha1[iml_path] = hashlib.sha1(str(iml_path_to_content[iml_path]).encode('utf-8')).hexdigest()
     return iml_path_to_sha1
 
 def file_path_under_dot_idea_directory(relative_path, root_bazel_package):
@@ -496,7 +496,7 @@ def process_main(project_data_json_path, intellij_files_archive_output_path):
         project_data["test_lib_label_matchlist"],
         project_data["jar_deps"])
 
-    module_dependency_matchlist = map(lambda x: ModuleDependencyMatcher(x), project_data["module_dependency_matchlist"])
+    module_dependency_matchlist = list(map(lambda x: ModuleDependencyMatcher(x), project_data["module_dependency_matchlist"]))
     insert_all_module_deps(
         bazel_package_to_iml_composer,
         convert_bazel_package_deps_to_intellij_module_deps(

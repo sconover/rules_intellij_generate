@@ -146,7 +146,7 @@ def _jar_deps(target, ctx):
     all_jar_deps = {}
 
     if JavaInfo in target:
-        for jar in target[JavaInfo].transitive_runtime_jars:
+        for jar in target[JavaInfo].transitive_runtime_jars.to_list():
             j = _jar_dep(target, jar)
             key = _jar_dep_key(j)
             all_jar_deps[key] = j
@@ -159,7 +159,7 @@ def _jar_deps(target, ctx):
             if JarDeps in d:
                 all_jar_deps.update(d[JarDeps].all)
             if JavaInfo in d:
-                for jar in d[JavaInfo].transitive_runtime_jars:
+                for jar in d[JavaInfo].transitive_runtime_jars.to_list():
                     j = _jar_dep(target, jar)
                     key = _jar_dep_key(j)
                     all_jar_deps[key] = j
@@ -240,7 +240,7 @@ def _impl(ctx):
 
     # execute the python script that transforms the input project data,
     # to an archive files containing all "managed" intellij configuration files.
-    ctx.action(
+    ctx.actions.run(
         executable = ctx.executable._intellij_generate_project_files,
         arguments = [
             project_data_json_file.path,
@@ -289,10 +289,10 @@ intellij_project = rule(
             cfg="target"),
 
         "_install_script_template_file": attr.label(
-            default=Label("//private:install_intellij_files.py.template"), allow_files=True, single_file=True),
+            default=Label("//private:install_intellij_files.py.template"), allow_single_file=True),
 
         "_fswatch_and_install_intellij_files_mac_template_file": attr.label(
-            default=Label("//private:fswatch_and_install_intellij_files_mac.sh.template"), allow_files=True, single_file=True),
+            default=Label("//private:fswatch_and_install_intellij_files_mac.sh.template"), allow_single_file=True),
 
         "deps": attr.label_list(
             default=[],
@@ -381,7 +381,7 @@ intellij_project = rule(
                                                  specified here.
                                                  """),
 
-        "iml_types_file": attr.label(mandatory=True, allow_files=True, single_file=True,
+        "iml_types_file": attr.label(mandatory=True, allow_single_file=True,
                                      doc = """
                                      A file containing iml type names, and xml contents that form the basis of
                                      intellij module files, for a given iml type.

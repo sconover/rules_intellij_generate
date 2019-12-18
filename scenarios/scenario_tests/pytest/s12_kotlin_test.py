@@ -17,7 +17,7 @@ class S12KotlinTest(unittest.TestCase):
     def test_source_folders(self):
         expected = [
             "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_google_guava_guava/jar/guava-19.0.jar!/",
-            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-runtime.jar!/",
+            "jar://${BAZEL_INFO_EXECUTION_ROOT}/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar!/",
         ]
 
         self.assertEqual(expected, find_all_plain_jar_libraries(self.child_iml_content))

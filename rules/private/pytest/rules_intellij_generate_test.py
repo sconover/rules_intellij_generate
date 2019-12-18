@@ -31,7 +31,7 @@ class RulesIntellijGenerateTest(unittest.TestCase):
                     "  </e>",
                     "</a>",
                     ""
-                ]), ET.tostring(xml_indent(a_element)))
+                ]), ET.tostring(xml_indent(a_element)).decode("utf-8"))
 
     def test_iml_paths(self):
         root_intellij_module = {
@@ -78,7 +78,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 
     def test_basic_composer_and_conversion_to_xml(self):
         iml_types_xml = """
-<?xml version='1.0' encoding='UTF-8'?>
 <iml-types>
     <iml-type name=\"java\">
         <module>
@@ -93,7 +92,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 """.strip()
 
         expected_root_iml_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
@@ -117,7 +115,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 
     def test_insert_jar_dep_into_iml_element_as_module_library(self):
         iml_base_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
@@ -129,7 +126,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 """.strip() + "\n"
 
         expected_content_1 = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
@@ -158,7 +154,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
         self.assertEqual(expected_content_1, convert_xml_element_to_pretty_printed_xml_string(element1))
 
         expected_content_2 = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
@@ -188,7 +183,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 
     def test_add_jar_libraries(self):
         iml_base_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name="NewModuleRootManager">
     <content>
@@ -262,7 +256,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
         # - libs that are present in both test mode and non-test mode, are considered compile dependencies (so, no scope attribute)
 
         expected_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name="NewModuleRootManager">
     <content>
@@ -399,7 +392,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 
     def test_insert_bazel_package_dep_into_iml_element_as_module_dep(self):
         iml_base_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
@@ -411,15 +403,14 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 """.strip() + "\n"
 
         expected_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
       <existing />
     </content>
     <orderEntry forTests="false" type="sourceFolder" />
-    <orderEntry module-name="bar" type="module" />
-    <orderEntry module-name="zzz" type="module" />
+    <orderEntry exported="" module-name="bar" type="module" />
+    <orderEntry exported="" module-name="zzz" type="module" />
   </component>
 </module>
 """.strip() + "\n"
@@ -432,7 +423,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 
     def test_add_bazel_package_deps(self):
         iml_base_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
@@ -444,15 +434,14 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 """.strip() + "\n"
 
         expected_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <module>
   <component name=\"NewModuleRootManager\">
     <content>
       <existing />
     </content>
     <orderEntry forTests="false" type="sourceFolder" />
-    <orderEntry module-name="bar" type="module" />
-    <orderEntry module-name="zzz" type="module" />
+    <orderEntry exported="" module-name="bar" type="module" />
+    <orderEntry exported="" module-name="zzz" type="module" />
   </component>
 </module>
 """.strip() + "\n"
@@ -466,7 +455,6 @@ class RulesIntellijGenerateTest(unittest.TestCase):
 
     def test_make_modules_xml(self):
         expected_content = """
-<?xml version='1.0' encoding='UTF-8'?>
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>

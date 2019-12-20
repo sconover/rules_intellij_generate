@@ -25,7 +25,7 @@ def xpath_list(xml_str, xpath):
 
 # unfortunately ElementTree doesn't handle returning xpath attribute values, this is a workaround.
 def xpath_attribute_list(xml_str, xpath, attribute_name):
-    return map(lambda e: e.get(attribute_name), parse_xml(xml_str).findall(xpath))
+    return list(map(lambda e: e.get(attribute_name), parse_xml(xml_str).findall(xpath)))
 
 
 def generated_file_path(relative_path):
@@ -49,14 +49,14 @@ def load_archive(intellij_files_archive_path):
     return relative_path_to_content
 
 def find_all_plain_jar_libraries(iml_content):
-    return map(lambda e: e.find("./library/CLASSES/root").get("url"),
+    return list(map(lambda e: e.find("./library/CLASSES/root").get("url"),
         filter(lambda e: e.get("type") == "module-library" and "scope" not in e.keys(),
-               parse_xml(iml_content).findall("./component/orderEntry")))
+               parse_xml(iml_content).findall("./component/orderEntry"))))
 
 def find_all_test_jar_libraries(iml_content):
-    return map(lambda e: e.find("./library/CLASSES/root").get("url"),
+    return list(map(lambda e: e.find("./library/CLASSES/root").get("url"),
         filter(lambda e: e.get("type") == "module-library" and e.get("scope") == "TEST",
-               parse_xml(iml_content).findall("./component/orderEntry")))
+               parse_xml(iml_content).findall("./component/orderEntry"))))
 
 def junit5_jars():
     return [

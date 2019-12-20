@@ -23,8 +23,8 @@ junit5_repositories()
 
 http_archive(
     name = "com_google_protobuf",
-    strip_prefix = "protobuf-3.6.1.3",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz"],
+    strip_prefix = "protobuf-3.11.0",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.0.tar.gz"],
 )
 http_archive(
     name = "com_google_protobuf_javalite",
@@ -34,13 +34,12 @@ http_archive(
 
 http_archive(
     name = "io_grpc_grpc_java",
-    urls = ["https://github.com/grpc/grpc-java/archive/57043233bf5aecce92f0c6629b6ac46d9393ce8c.zip"],
-    strip_prefix = "grpc-java-57043233bf5aecce92f0c6629b6ac46d9393ce8c",
+    urls = ["https://github.com/grpc/grpc-java/archive/fd7d2e5eb4dd020bb892278c78f7b3ef901232c1.zip"],
+    strip_prefix = "grpc-java-fd7d2e5eb4dd020bb892278c78f7b3ef901232c1",
 )
 load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
 grpc_java_repositories(
     omit_com_google_guava=True,
-    omit_io_opencensus_api=True,
     omit_com_google_protobuf=True,
     omit_com_google_protobuf_javalite=True,
 )
@@ -79,18 +78,22 @@ exports_files([
 )
 
 # 12_kotlin
-rules_kotlin_version = "59dc7473c777b5054e91c1af6b95ed0ecbdc0ace" # 2019-04-01
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+rules_kotlin_version = "legacy-1.3.0-rc3"
+rules_kotlin_sha = "54678552125753d9fc0a37736d140f1d2e69778d3e52cf454df41a913b964ede"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
     type = "zip",
-    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version
+    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
+    sha256 = rules_kotlin_sha,
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 kotlin_repositories()
 kt_register_toolchains()
+
 
 # 15_typescript_rules_multi_tsc
 new_local_repository(
@@ -122,11 +125,26 @@ filegroup(
 """
 )
 
-rules_multi_tsc_version = "b4976c44357323aa6a69e26d8cee9ecc31a32fa1"
+rules_multi_tsc_version = "b532865f32eff58338f6a9822adaa7d3142c845d"
 
 http_archive(
     name = "rules_multi_tsc",
     urls = ["https://github.com/sconover/rules_multi_tsc/archive/%s.zip" % rules_multi_tsc_version],
     type = "zip",
     strip_prefix = "rules_multi_tsc-%s/rules" % rules_multi_tsc_version
+)
+
+http_archive(
+    name = "rules_python",
+    sha256 = "e5470e92a18aa51830db99a4d9c492cc613761d5bdb7131c04bd92b9834380f6",
+    strip_prefix = "rules_python-4b84ad270387a7c439ebdccfd530e2339601ef27",
+    urls = ["https://github.com/bazelbuild/rules_python/archive/4b84ad270387a7c439ebdccfd530e2339601ef27.tar.gz"],
+)
+
+http_archive(
+    name = "zlib",
+    build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
+    sha256 = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff",
+    strip_prefix = "zlib-1.2.11",
+    urls = ["https://github.com/madler/zlib/archive/v1.2.11.tar.gz"],
 )

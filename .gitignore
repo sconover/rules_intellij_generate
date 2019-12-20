@@ -8,3 +8,4 @@ out/
 node_modules
 workspace.xml
 .rig_sha1
+.python-version

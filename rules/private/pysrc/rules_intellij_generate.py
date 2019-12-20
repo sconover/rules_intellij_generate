@@ -10,7 +10,7 @@ the build run, but the user runs it independently, so it may access all the info
 available from "bazel info", and merge those values with the archive produced by this
 script, and thus produce and place "final" intellij xml config files)
 
-Organziation of this script roughly from low level (utility functions) to high level
+Organization of this script roughly from low level (utility functions) to high level
 (main, at the end). Functions are organized in rough order of when they're applied by
 the main method. To understand what's being done, it's probably best to start at the
 end and work backwards.
@@ -24,6 +24,9 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from fnmatch import fnmatch
+
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
 
 # ===================
 # UTILITY FUNCTIONS
@@ -79,7 +82,7 @@ def xml_indent(elem, level=0, is_last=True):
     return elem
 
 def convert_xml_element_to_pretty_printed_xml_string(element):
-    return ET.tostring(xml_indent(element), encoding="UTF-8", method="xml").decode()
+    return ET.tostring(xml_indent(element), encoding="UTF-8", method="xml").decode("utf-8")
 
 def check_for_valid_declared_intellij_module(declared_intellij_module):
     check_state("bazel_package" in declared_intellij_module,
@@ -227,7 +230,7 @@ def insert_all_jar_libraries(bazel_package_to_iml_composer,
     def jar_is_managed_by_bazel(j):
         return j["generated_by_build"] and is_managed_by_build_tool(j)
 
-    jar_paths_managed_by_bazel = map(lambda j: j["relative_jar_path"], filter(jar_is_managed_by_bazel, jar_deps))
+    jar_paths_managed_by_bazel = list(map(lambda j: j["relative_jar_path"], filter(jar_is_managed_by_bazel, jar_deps)))
 
     def library_jar_dependency(j):
         if j["generated_by_build"] and j["relative_jar_path"] in jar_paths_managed_by_bazel:
@@ -255,7 +258,7 @@ def insert_all_jar_libraries(bazel_package_to_iml_composer,
         jar_deps_for_package = bazel_package_to_jar_deps[bazel_package]
 
         def unique_and_sorted_jar_paths(jar_deps):
-            jar_paths = map(lambda j: j["relative_jar_path"], jar_deps)
+            jar_paths = list(map(lambda j: j["relative_jar_path"], jar_deps))
             jar_paths = set(jar_paths)
             return sorted(jar_paths, key=lambda p: os.path.basename(p))
 
@@ -364,7 +367,7 @@ def convert_bazel_package_deps_to_intellij_module_deps(package_to_depends_on_pac
         depends_on_packages = package_to_depends_on_packages[p]
         depends_on_packages = filter(lambda dp: dp in bazel_package_name_to_module_name, depends_on_packages)
         bazel_package_to_depends_on_modules[p] = \
-            map(lambda dp: bazel_package_name_to_module_name[dp], depends_on_packages)
+            list(map(lambda dp: bazel_package_name_to_module_name[dp], depends_on_packages))
 
     return bazel_package_to_depends_on_modules
 
@@ -395,7 +398,6 @@ def make_modules_xml(project_path_from_workspace_root, iml_paths_from_workspace_
     intellij uses to discover what the modules are in an intellij project.
     Generate the modules.xml file contents."""
     result = """
-<?xml version='1.0' encoding='UTF-8'?>
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
@@ -469,12 +471,12 @@ def make_intellij_files_archive(iml_path_to_sha1, relative_path_to_xml_content, 
     (relative path and content), concatenated together, with sha1's of each file at the top of the archive."""
 
     sorted_iml_path_to_sha1 = sorted(iml_path_to_sha1.items(), key=lambda t: t[0])
-    iml_sha1_entries = map(lambda t: " ".join(t), sorted_iml_path_to_sha1)
+    iml_sha1_entries = list(map(lambda t: " ".join(t), sorted_iml_path_to_sha1))
 
     sorted_iml_path_to_content = sorted(relative_path_to_xml_content.items(), key=lambda t: t[0])
-    iml_content_entries = map(lambda t: "%s\n%s" % (t[0], t[1]), sorted_iml_path_to_content)
+    iml_content_entries = list(map(lambda t: "%s\n%s" % (t[0], t[1]), sorted_iml_path_to_content))
 
-    symlinks_entries = map(lambda k: "%s|%s" % (k, symlinks[k]), sorted(symlinks.keys()))
+    symlinks_entries = list(map(lambda k: "%s|%s" % (k, symlinks[k]), sorted(symlinks.keys())))
 
     return "\n".join(iml_sha1_entries) + "\n__SHA1_DIVIDER__\n" + \
         "\n__FILE_DIVIDER__\n".join(iml_content_entries) + \

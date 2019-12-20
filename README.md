@@ -57,3 +57,16 @@ in your workspace.
 You may want to try this out using the scenarios. Once installed, any scenario should be loadable into Intellij,
 by opening up its directory in the IDE as a new project.
 
+## Python
+
+This project has a dependency on python. For now please make sure you have a python 3 interpreter that's findable 
+by the core-bazel [default toolchain support for python](https://github.com/bazelbuild/rules_python/blob/master/proposals/2019-02-12-design-for-a-python-toolchain.md#default-toolchain).
+
+If you are using pyenv, install a modern 3.X interpreter, and make it findable by the bazel/python default
+toolchain support using:
+
+```
+pyenv global 3.7.0
+```
+
+Where "3.7.0" is the version of your python 3 interpreter.

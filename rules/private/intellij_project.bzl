@@ -269,7 +269,8 @@ def _impl(ctx):
         output=ctx.outputs.install_intellij_files_script,
         template=ctx.file._install_script_template_file,
         substitutions={
-            "# _CUSTOM_ENV_VARS_GO_HERE": custom_env_vars_str
+            "# _CUSTOM_ENV_VARS_GO_HERE": custom_env_vars_str,
+            "_BAZELEXE_": ctx.attr.bazelexec,
         },
         is_executable=True)
 
@@ -293,6 +294,13 @@ intellij_project = rule(
 
         "_fswatch_and_install_intellij_files_mac_template_file": attr.label(
             default=Label("//private:fswatch_and_install_intellij_files_mac.sh.template"), allow_single_file=True),
+
+        "bazelexec": attr.string(
+            default='bazel',
+            doc="""
+        The install_intellij_files script gets information about the version of bazel you are using.
+        If you are using something like bazelisk, you can specify ./bazelisk instead of a system bazel.
+        """),
 
         "deps": attr.label_list(
             default=[],

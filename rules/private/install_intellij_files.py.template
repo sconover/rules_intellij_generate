@@ -51,7 +51,7 @@ custom_substitutions = {
 # Execute "bazel info", and transform the variable names in the output into
 # BAZEL_INFO_VARIABLE_NAME style.
 bazel_info = {}
-for line in get_subcommand_output(["bazel", "info"]).splitlines():
+for line in get_subcommand_output(["_BAZELEXE_", "info"]).splitlines():
     parts = map(lambda part: part.strip(), line.split(":", 1))
     key = "BAZEL_INFO_" + parts[0].upper().replace("-", "_")
     value = parts[1]

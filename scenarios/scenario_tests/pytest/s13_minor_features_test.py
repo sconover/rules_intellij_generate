@@ -1,8 +1,8 @@
 import unittest
 from scenario_test_support import *
 
-class S13MinorFeaturesTest(unittest.TestCase):
 
+class S13MinorFeaturesTest(unittest.TestCase):
     archive = load_archive("13_minor_features/intellij_files")
 
     iml_content = archive["13_minor_features/13_mymodulename.iml"]
@@ -23,6 +23,9 @@ class S13MinorFeaturesTest(unittest.TestCase):
         custom_vars_in_python = script_content.split("# BEFORE_CUSTOM_VARS")[1].split("# AFTER_CUSTOM_VARS")[0]
 
         self.assertEqual(
-            "'MY_BICYCLE_COLOR':'red',\n" +
-            "'SOME_FILE':'13_minor_features/some_file.txt',",
-            custom_vars_in_python.strip())
+                "'MY_BICYCLE_COLOR':'red',\n" +
+                "'SOME_FILE':'13_minor_features/some_file.txt',",
+                custom_vars_in_python.strip())
+
+        self.assertContains(script_content,
+                            'for line in get_subcommand_output(["my-bazel-script", "info"]).splitlines()')

@@ -31,6 +31,7 @@ intellij_module(name="iml", iml_type="java-simple2", module_name_override="13_my
 
 intellij_project(
     name="project_13",
+    bazelexec="my-bazel-script",
     deps=[":java_test_lib"],
     test_lib_label_matchlist=['{"label_name":"java_test_lib"}'],
     custom_substitutions={

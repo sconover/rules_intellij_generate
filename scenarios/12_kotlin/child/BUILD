@@ -8,23 +8,26 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
 kt_jvm_library(
     name = "kt_lib",
     srcs = glob(["src/**/*.kt"]),
-    deps=[
+    deps = [
         "//12_kotlin/parent:kt_lib",
-    ]
+    ],
 )
 
 kt_jvm_library(
-    name="kt_test_lib",
+    name = "kt_test_lib",
     srcs = glob(["test/**/*.kt"]),
-    deps=[
+    deps = [
         ":kt_lib",
     ] + JUNIT5_MINIMAL_DEPS,
 )
 
 junit5_all_in_package_test(
-    name="kt_tests",
-    java_package="kotlin_example",
-    runtime_deps=[":kt_test_lib"]
+    name = "kt_tests",
+    java_package = "kotlin_example",
+    runtime_deps = [":kt_test_lib"],
 )
 
-intellij_module(name="iml", iml_type="kotlin-simple")
+intellij_module(
+    name = "iml",
+    iml_type = "kotlin-simple",
+)

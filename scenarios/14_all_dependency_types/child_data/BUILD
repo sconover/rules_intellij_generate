@@ -7,4 +7,7 @@ sh_library(
     data = ["//14_all_dependency_types/parent:parent.txt"],
 )
 
-intellij_module(name="iml", iml_type="java-simple")
+intellij_module(
+    name = "iml",
+    iml_type = "java-simple",
+)

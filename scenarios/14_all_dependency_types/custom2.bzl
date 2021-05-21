@@ -6,5 +6,5 @@ custom2 = rule(
     attrs = {
         "gorps": attr.label_list(),
     },
-    outputs={},
+    outputs = {},
 )

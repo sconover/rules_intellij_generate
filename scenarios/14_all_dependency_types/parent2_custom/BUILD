@@ -7,4 +7,7 @@ sh_library(
     srcs = ["parent2.sh"],
 )
 
-intellij_module(name="iml", iml_type="java-simple")
+intellij_module(
+    name = "iml",
+    iml_type = "java-simple",
+)

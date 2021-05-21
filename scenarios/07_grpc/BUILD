@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
+
 package(default_visibility = ["//:__subpackages__"])
 
 load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
@@ -9,11 +11,11 @@ load("@rules_intellij_generate//:def.bzl", "intellij_module")
 proto_library(
     name = "proto",
     srcs = [
-        "src/main/proto/fortune.proto"
+        "src/main/proto/fortune.proto",
     ],
     deps = [
         "@com_google_protobuf//:descriptor_proto",
-    ]
+    ],
 )
 
 java_proto_library(
@@ -35,51 +37,55 @@ java_proto_library(
 #     visibility: (list) the visibility list
 java_grpc_library(
     name = "java_grpc",
-    deps = [":java_proto"],
     srcs = [
         ":proto",
+    ],
+    deps = [":java_proto"],
+)
+
+java_library(
+    name = "java_lib",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps = [
+        ":java_grpc",
+        ":java_proto",
+        "@com_google_protobuf//:protobuf_java",
+        "@io_grpc_grpc_java//stub",
     ],
 )
 
 java_library(
-    name="java_lib",
-    srcs = glob(["src/main/java/**/*.java"]),
-    deps = [
-        ":java_proto",
-        ":java_grpc",
-
-        "@io_grpc_grpc_java//stub",
-        "@com_google_protobuf//:protobuf_java",
-    ]
-)
-
-java_library(
-    name="java_test_lib",
+    name = "java_test_lib",
     srcs = glob(["src/test/java/**/*.java"]),
-    deps=[
+    deps = [
         ":java_lib",
         ":java_proto",
-
         "@io_grpc_grpc_java//stub",
         "@com_google_protobuf//:protobuf_java",
     ] + JUNIT5_MINIMAL_DEPS,
 )
 
 junit5_all_in_package_test(
-    name="java_tests",
-    java_package="fortune_grpc",
-    runtime_deps=[":java_test_lib"]
+    name = "java_tests",
+    java_package = "fortune_grpc",
+    runtime_deps = [":java_test_lib"],
 )
 
-intellij_module(name="iml", iml_type="java-maven-style")
+intellij_module(
+    name = "iml",
+    iml_type = "java-maven-style",
+)
 
 intellij_project(
-    name="project_07",
-    deps=[":java_test_lib"],
-    build_managed_label_matchlist=['{"label_name":"java_proto"}', '{"label_name":"java_grpc"}'],
-    test_lib_label_matchlist=['{"label_name":"java_test_lib"}'],
-    iml_types_file="//:iml_types.xml",
-    project_root_filegroup="//:automatically_placed_intellij_project_files",
-    project_root_filegroup_ignore_prefix="intellij_project_files",
-    modules=[":iml"]
+    name = "project_07",
+    build_managed_label_matchlist = [
+        '{"label_name":"java_proto"}',
+        '{"label_name":"java_grpc"}',
+    ],
+    iml_types_file = "//:iml_types.xml",
+    modules = [":iml"],
+    project_root_filegroup = "//:automatically_placed_intellij_project_files",
+    project_root_filegroup_ignore_prefix = "intellij_project_files",
+    test_lib_label_matchlist = ['{"label_name":"java_test_lib"}'],
+    deps = [":java_test_lib"],
 )

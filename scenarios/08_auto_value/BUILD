@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
+
 package(default_visibility = ["//:__subpackages__"])
 
 load("@rules_intellij_generate//:def.bzl", "intellij_project")
@@ -14,35 +16,37 @@ java_plugin(
 )
 
 java_library(
-    name="java_lib",
+    name = "java_lib",
     srcs = glob(["src/main/java/**/*.java"]),
-    deps=[
+    deps = [
         ":autovalue_plugin",
-
         "@com_google_auto_value//jar",
     ],
 )
 
 java_library(
-    name="java_test_lib",
+    name = "java_test_lib",
     srcs = glob(["src/test/java/**/*.java"]),
-    deps=[":java_lib"] + JUNIT5_MINIMAL_DEPS,
+    deps = [":java_lib"] + JUNIT5_MINIMAL_DEPS,
 )
 
 junit5_all_in_package_test(
-    name="java_tests",
-    java_package="house",
-    runtime_deps=[":java_test_lib"]
+    name = "java_tests",
+    java_package = "house",
+    runtime_deps = [":java_test_lib"],
 )
 
-intellij_module(name="iml", iml_type="java-maven-style")
+intellij_module(
+    name = "iml",
+    iml_type = "java-maven-style",
+)
 
 intellij_project(
-    name="project_08",
-    deps=[":java_test_lib"],
-    test_lib_label_matchlist=['{"label_name":"java_test_lib"}'],
-    iml_types_file="//:iml_types.xml",
-    project_root_filegroup="//:automatically_placed_intellij_project_files",
-    project_root_filegroup_ignore_prefix="intellij_project_files",
-    modules=[":iml"]
+    name = "project_08",
+    iml_types_file = "//:iml_types.xml",
+    modules = [":iml"],
+    project_root_filegroup = "//:automatically_placed_intellij_project_files",
+    project_root_filegroup_ignore_prefix = "intellij_project_files",
+    test_lib_label_matchlist = ['{"label_name":"java_test_lib"}'],
+    deps = [":java_test_lib"],
 )

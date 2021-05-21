@@ -8,4 +8,7 @@ sh_library(
     data = ["parent.txt"],
 )
 
-intellij_module(name="iml", iml_type="java-simple")
+intellij_module(
+    name = "iml",
+    iml_type = "java-simple",
+)

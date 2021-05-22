@@ -1,105 +1,140 @@
-workspace(name="rules_intellij_generate_scenarios")
+workspace(name = "rules_intellij_generate_scenarios")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
-maven_jar(name="com_google_guava_guava",         artifact="com.google.guava:guava:19.0")
-maven_jar(name="com_google_auto_value",          artifact="com.google.auto.value:auto-value:1.5.2")
+http_archive(
+    name = "rules_java",
+    url = "https://github.com/bazelbuild/rules_java/releases/download/4.0.0/rules_java-4.0.0.tar.gz",
+    sha256 = "34b41ec683e67253043ab1a3d1e8b7c61e4e8edefbcad485381328c934d072fe",
+)
+load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
+rules_java_dependencies()
+rules_java_toolchains()
+
+load("@bazel_tools//tools/build_defs/repo:jvm.bzl", "jvm_maven_import_external")
+
+jvm_maven_import_external(
+    name = "com_google_guava_guava",
+    artifact = "com.google.guava:guava:19.0",
+    licenses = ["notice"],
+    server_urls = ["https://repo1.maven.org/maven2"],
+)
+
+jvm_maven_import_external(
+    name = "com_google_auto_value",
+    artifact = "com.google.auto.value:auto-value:1.5.2",
+    licenses = ["notice"],
+    server_urls = ["https://repo1.maven.org/maven2"],
+)
+
+
 
 local_repository(
     name = "rules_intellij_generate",
     path = "../rules",
 )
 
-rules_junit5_sha = "e86a061d86ccb695f705d32c70804f9dc2f4d760"
+rules_junit5_sha = "e3a81f345d4d71af1a0710ec72488bb823e9b5fc"
+
 http_archive(
     name = "rules_junit5",
-    url = "https://github.com/sconover/rules_junit5/archive/%s.tar.gz" % rules_junit5_sha,
     strip_prefix = "rules_junit5-%s" % rules_junit5_sha,
+    url = "https://github.com/daicoden/rules_junit5/archive/%s.tar.gz" % rules_junit5_sha,
 )
+
 load("@rules_junit5//:def.bzl", "junit5_repositories")
+
 junit5_repositories()
 
 
 http_archive(
-    name = "com_google_protobuf",
-    strip_prefix = "protobuf-3.11.0",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.0.tar.gz"],
-)
-http_archive(
-    name = "com_google_protobuf_javalite",
-    strip_prefix = "protobuf-javalite",
-    urls = ["https://github.com/google/protobuf/archive/javalite.zip"],
+    name = "io_grpc_grpc_java",
+    strip_prefix = "grpc-java-1.38.0",
+    urls = ["https://github.com/grpc/grpc-java/archive/v1.38.0.zip"],
 )
 
-http_archive(
-    name = "io_grpc_grpc_java",
-    urls = ["https://github.com/grpc/grpc-java/archive/fd7d2e5eb4dd020bb892278c78f7b3ef901232c1.zip"],
-    strip_prefix = "grpc-java-fd7d2e5eb4dd020bb892278c78f7b3ef901232c1",
-)
 load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
-grpc_java_repositories(
-    omit_com_google_guava=True,
-    omit_com_google_protobuf=True,
-    omit_com_google_protobuf_javalite=True,
+load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_ARTIFACTS")
+load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS")
+
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "rules_jvm_external",
+    sha256 = "62133c125bf4109dfd9d2af64830208356ce4ef8b165a6ef15bbff7460b35c3a",
+    strip_prefix = "rules_jvm_external-3.0",
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/3.0.zip",
 )
+
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+maven_install(
+    artifacts = IO_GRPC_GRPC_JAVA_ARTIFACTS,
+    generate_compat_repositories = True,
+    override_targets = IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS,
+    repositories = [
+        "https://repo.maven.apache.org/maven2/",
+    ],
+)
+
+load("@maven//:compat.bzl", "compat_repositories")
+
+compat_repositories()
+
+
+grpc_java_repositories()
 
 # see https://github.com/bazelbuild/rules_nodejs
 
-# rules_nodejs depends on bazel_skylib
-# Bazel doesn't support transitive workspace deps so you must copy this.
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
-    name = "bazel_skylib",
-    url = "https://github.com/bazelbuild/bazel-skylib/archive/0.3.1.zip",
-    strip_prefix = "bazel-skylib-0.3.1",
-    sha256 = "95518adafc9a2b656667bbf517a952e54ce7f350779d0dd95133db4eb5c27fb1",
-)
-
-git_repository(
     name = "build_bazel_rules_nodejs",
-    remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.27.12", # 2019-04-09. check for the latest tag when you install
+    sha256 = "65067dcad93a61deb593be7d3d9a32a4577d09665536d8da536d731da5cd15e2",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.4.2/rules_nodejs-3.4.2.tar.gz"],
 )
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
-load("@build_bazel_rules_nodejs//:defs.bzl", "npm_install")
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
 
 
 # for all js/ts-related examples
 http_archive(
     name = "node",
-    url = "https://nodejs.org/dist/v10.14.2/node-v10.14.2-darwin-x64.tar.gz",
-    strip_prefix = "node-v10.14.2-darwin-x64",
-    build_file_content="""
+    build_file_content = """
 exports_files([
     "bin/node",
 ])
-"""
+""",
+    strip_prefix = "node-v10.14.2-darwin-x64",
+    url = "https://nodejs.org/dist/v10.14.2/node-v10.14.2-darwin-x64.tar.gz",
 )
 
 # 12_kotlin
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 rules_kotlin_version = "legacy-1.3.0-rc3"
+
 rules_kotlin_sha = "54678552125753d9fc0a37736d140f1d2e69778d3e52cf454df41a913b964ede"
+
 http_archive(
     name = "io_bazel_rules_kotlin",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
-    type = "zip",
-    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
     sha256 = rules_kotlin_sha,
+    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
+    type = "zip",
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories()
-kt_register_toolchains()
 
+kotlin_repositories()
+
+kt_register_toolchains()
 
 # 15_typescript_rules_multi_tsc
 new_local_repository(
-    name="node_modules_15_typescript_rules_multi_tsc",
-    path="15_typescript_rules_multi_tsc/deps",
-    build_file_content="""
+    name = "node_modules_15_typescript_rules_multi_tsc",
+    build_file_content = """
 exports_files([
     "package.json",
     "package-lock.json",
@@ -122,16 +157,17 @@ filegroup(
     ]),
     visibility = ["//visibility:public"],
 )
-"""
+""",
+    path = "15_typescript_rules_multi_tsc/deps",
 )
 
 rules_multi_tsc_version = "b532865f32eff58338f6a9822adaa7d3142c845d"
 
 http_archive(
     name = "rules_multi_tsc",
-    urls = ["https://github.com/sconover/rules_multi_tsc/archive/%s.zip" % rules_multi_tsc_version],
+    strip_prefix = "rules_multi_tsc-%s/rules" % rules_multi_tsc_version,
     type = "zip",
-    strip_prefix = "rules_multi_tsc-%s/rules" % rules_multi_tsc_version
+    urls = ["https://github.com/sconover/rules_multi_tsc/archive/%s.zip" % rules_multi_tsc_version],
 )
 
 http_archive(

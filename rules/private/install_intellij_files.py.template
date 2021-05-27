@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """
 Read in the intellij file archive, and write out individual intellij config files under the project workspace
 """
